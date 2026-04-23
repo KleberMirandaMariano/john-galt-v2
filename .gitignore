@@ -1,0 +1,27 @@
+# API Keys e Secrets
+*.env
+**/env.conf
+**/*API_KEY*
+**/*token*
+**/*secret*
+
+# Cache
+.cripto_cache.json
+.fng_cache.json
+b3_cotacoes.txt
+noticias.txt
+*.pyc
+__pycache__/
+
+# Logs
+*.log
+cron.log
+
+# Configs pessoais
+config.toml
+!config.toml.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
