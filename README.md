@@ -192,3 +192,52 @@ MIT License
 
 **Última Atualização:** 23/04/2026  
 **Autor:** Kleber Miranda ([@KleberMirandaMariano](https://github.com/KleberMirandaMariano))
+
+---
+
+## 🔍 Validador de Opções B3
+
+Script genérico para validar análises quantitativas de **QUALQUER ativo B3**.
+
+### ✅ Erros Corrigidos:
+
+1. 🔴 **Série expirada** (nomenclatura B3: A-L = jan-dez)
+2. 🔴 **Delta incorreto** (Black-Scholes correto)
+3. 🔴 **P(ITM) incorreto** (probabilidade real)
+4. 🔴 **Theta positivo** (impossível para long call)
+5. 🔴 **Break-even errado** (Strike + Premium, não Spot + Premium)
+6. 🟡 **Classificação ATM/OTM/ITM**
+7. 🟡 **P&L calculado**
+8. 🟡 **Kelly Criterion**
+
+### 🚀 Uso:
+
+```bash
+python3 scripts/validate_options_b3.py \
+  TICKER SPOT STRIKE DAYS RATE VOL SERIES DATE PREMIUM TARGET CONTRACTS
+```
+
+### 📊 Exemplos:
+
+```bash
+# COGN3
+python3 scripts/validate_options_b3.py COGN3 2.97 3.35 23 0.1475 0.65 COGND335 2026-04-24 0.085 3.80 10
+
+# PETR4
+python3 scripts/validate_options_b3.py PETR4 38.50 40.00 30 0.1475 0.45 PETRJ40 2026-05-15 1.20 42.00 5
+
+# VALE3
+python3 scripts/validate_options_b3.py VALE3 65.50 68.00 25 0.1475 0.50 VALEF68 2026-06-15 1.50 70.00 10
+```
+
+### 📈 Saída:
+
+- ✅ Gregas Black-Scholes corretas (Delta, Theta, Gamma, Vega)
+- ✅ P(ITM) real
+- ✅ Break-even correto
+- ✅ P&L calculado
+- ✅ Kelly Criterion com valor esperado
+- ✅ Detecção automática de erros
+
+**Baseado na validação Cowork (24/04/2026) que encontrou 9 erros na análise COGN3.**
+
