@@ -1,0 +1,88 @@
+name: 🚀 Deploy to VPS Hostinger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy John Galt v2.0
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v3
+    
+    - name: 🔐 Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+    
+    - name: 📦 Deploy to VPS
+      env:
+        VPS_HOST: ${{ secrets.VPS_HOST }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+      run: |
+        # Adicionar host aos known_hosts
+        ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
+        
+        # Fazer deploy via SSH
+        ssh $VPS_USER@$VPS_HOST << 'ENDSSH'
+          set -e
+          
+          echo "🔄 Iniciando deploy do John Galt v2.0..."
+          
+          # Ir para diretório do projeto
+          cd /root/.zeroclaw/workspace
+          
+          # Fazer backup das configs atuais
+          echo "💾 Backup de SOUL.md, AGENTS.md..."
+          cp SOUL.md SOUL.md.backup 2>/dev/null || true
+          cp AGENTS.md AGENTS.md.backup 2>/dev/null || true
+          
+          # Clonar/atualizar repositório
+          if [ ! -d "/tmp/john-galt-v2-deploy" ]; then
+            echo "📥 Clonando repositório..."
+            git clone https://github.com/KleberMirandaMariano/john-galt-v2.git /tmp/john-galt-v2-deploy
+          else
+            echo "🔄 Atualizando repositório..."
+            cd /tmp/john-galt-v2-deploy
+            git pull origin main
+          fi
+          
+          # Copiar configs
+          echo "📝 Atualizando SOUL.md..."
+          cp /tmp/john-galt-v2-deploy/config/SOUL.md /root/.zeroclaw/workspace/
+          
+          echo "📝 Atualizando AGENTS.md..."
+          cp /tmp/john-galt-v2-deploy/config/AGENTS.md /root/.zeroclaw/workspace/ 2>/dev/null || true
+          
+          echo "📝 Atualizando TOOLS.md..."
+          cp /tmp/john-galt-v2-deploy/config/TOOLS.md /root/.zeroclaw/workspace/ 2>/dev/null || true
+          
+          # Copiar scripts
+          echo "🔧 Atualizando scripts..."
+          cp /tmp/john-galt-v2-deploy/scripts/*.py /root/.zeroclaw/workspace/ 2>/dev/null || true
+          cp /tmp/john-galt-v2-deploy/scripts/*.sh /root/.zeroclaw/workspace/ 2>/dev/null || true
+          chmod +x /root/.zeroclaw/workspace/*.sh 2>/dev/null || true
+          
+          # Copiar skills
+          echo "🧩 Atualizando skills..."
+          cp -r /tmp/john-galt-v2-deploy/skills/* /root/.zeroclaw/workspace/skills/ 2>/dev/null || true
+          
+          # Reiniciar ZeroClaw
+          echo "🔄 Reiniciando ZeroClaw..."
+          systemctl --user restart zeroclaw
+          
+          sleep 3
+          
+          # Verificar status
+          echo "✅ Verificando status..."
+          systemctl --user status zeroclaw --no-pager | head -10
+          
+          echo "🎉 Deploy concluído com sucesso!"
+        ENDSSH
+    
+    - name: ✅ Deploy Success
+      run: echo "🚀 John Galt v2.0 atualizado na VPS!"
