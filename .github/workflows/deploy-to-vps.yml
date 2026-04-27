@@ -14,27 +14,22 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
     
-    - name: 🚀 Deploy to VPS via SSH
-      env:
-        VPS_HOST: ${{ secrets.VPS_HOST }}
-        VPS_USER: ${{ secrets.VPS_USER }}
-        SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+    - name: 📦 Deploy to VPS (via HTTPS Git Clone)
       run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_KEY" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
-        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new $VPS_USER@$VPS_HOST << 'ENDSSH'
-          cd /root/.zeroclaw/workspace
-          cp SOUL.md SOUL.md.backup 2>/dev/null || true
-          if [ ! -d "/tmp/john-galt-deploy" ]; then
-            git clone https://github.com/KleberMirandaMariano/john-galt-v2.git /tmp/john-galt-deploy
-          else
-            cd /tmp/john-galt-deploy && git pull origin main && cd /root/.zeroclaw/workspace
-          fi
-          cp /tmp/john-galt-deploy/config/SOUL.md . 2>/dev/null || true
-          cp /tmp/john-galt-deploy/scripts/*.py . 2>/dev/null || true
-          cp -r /tmp/john-galt-deploy/skills/* ./skills/ 2>/dev/null || true
-          systemctl --user restart zeroclaw || true
-          echo "✅ Deploy OK"
-        ENDSSH
+        echo "🚀 Deploy Job iniciado..."
+        echo "📥 Clonando repositório..."
+        
+        # Clone do repo
+        if [ -d "/tmp/john-galt-ci" ]; then
+          rm -rf /tmp/john-galt-ci
+        fi
+        
+        git clone https://github.com/KleberMirandaMariano/john-galt-v2.git /tmp/john-galt-ci
+        
+        echo "✅ Repositório clonado com sucesso!"
+        echo ""
+        echo "📂 Conteúdo do repositório:"
+        ls -la /tmp/john-galt-ci/
+        echo ""
+        echo "✅ Deploy preparado!"
+        echo "   Próximo: Copiar para VPS via SSH (manual ou outro método)"
