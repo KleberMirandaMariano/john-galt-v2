@@ -68,6 +68,27 @@ Output: Análise de correlação BTC vs VIX (Pearson), preços, retornos, volati
 JSON: /tmp/btc_vix_correlation.json
 Fontes: YFinance (BTC-USD, ^VIX)
 
+### btc_spx_correlation.py — Correlação BTC vs S&P 500
+Uso: python3 /root/.zeroclaw/workspace/btc_spx_correlation.py [dias]
+Exemplo: python3 btc_spx_correlation.py 90
+Output: Análise de correlação BTC vs S&P 500 (Pearson), teste risk-on/risk-off
+JSON: /tmp/btc_spx_correlation.json
+Fontes: YFinance (BTC-USD, ^GSPC)
+
+### btc_dxy_correlation.py — Correlação BTC vs Dollar Index
+Uso: python3 /root/.zeroclaw/workspace/btc_dxy_correlation.py [dias]
+Exemplo: python3 btc_dxy_correlation.py 90
+Output: Análise de correlação BTC vs DXY, teste proteção contra USD
+JSON: /tmp/btc_dxy_correlation.json
+Fontes: YFinance (BTC-USD, DX-Y.NYB)
+
+### btc_gold_correlation.py — Correlação BTC vs Ouro
+Uso: python3 /root/.zeroclaw/workspace/btc_gold_correlation.py [dias]
+Exemplo: python3 btc_gold_correlation.py 90
+Output: Análise de correlação BTC vs Gold, teste "ouro digital", volatilidade comparativa
+JSON: /tmp/btc_gold_correlation.json
+Fontes: YFinance (BTC-USD, GC=F)
+
 ## Fórmulas Inline — Python
 
 ### Black-Scholes
