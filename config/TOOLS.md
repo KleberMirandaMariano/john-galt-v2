@@ -61,6 +61,13 @@ Fonte: BRAPI (tempo real)
 Uso: python3 /root/.zeroclaw/workspace/news_scraper.py
 Salvo em noticias.txt (cron 3x/dia: 09h, 13h, 17h)
 
+### btc_vix_correlation.py — Correlação BTC vs VIX
+Uso: python3 /root/.zeroclaw/workspace/btc_vix_correlation.py [dias]
+Exemplo: python3 btc_vix_correlation.py 90
+Output: Análise de correlação BTC vs VIX (Pearson), preços, retornos, volatilidade
+JSON: /tmp/btc_vix_correlation.json
+Fontes: YFinance (BTC-USD, ^VIX)
+
 ## Fórmulas Inline — Python
 
 ### Black-Scholes
