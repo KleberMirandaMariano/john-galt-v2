@@ -4,11 +4,26 @@ validate_options_b3.py — Validador genérico para análise de opções B3
 Corrige os 9 erros encontrados na validação Cowork para QUALQUER ativo
 """
 
+import logging
 import numpy as np
 from scipy.stats import norm
 from datetime import datetime, timedelta
 import json
 import sys
+
+logger = logging.getLogger(__name__)
+
+# Taxa Selic padrão — atualizar conforme decisão do COPOM
+# Fonte: https://www.bcb.gov.br/controleinflacao/taxaselic
+SELIC_DEFAULT = 0.1475
+
+# Limiares de classificação de moneyness (%)
+ATM_THRESHOLD_PCT = 2.0
+DEEP_THRESHOLD_PCT = 10.0
+
+# Divisor conservador do Kelly Criterion
+KELLY_CONSERVATIVE_DIVISOR = 4
+
 
 class OptionsValidatorB3:
     """
@@ -159,17 +174,17 @@ class OptionsValidatorB3:
         """Classifica corretamente para QUALQUER strike"""
         moneyness_pct = ((self.S - self.K) / self.K) * 100
         
-        if abs(moneyness_pct) < 2:
+        if abs(moneyness_pct) < ATM_THRESHOLD_PCT:
             classification = "ATM"
         elif moneyness_pct > 0:
             classification = "ITM"
         else:
             classification = "OTM"
-        
+
         return {
             "classification": classification,
             "moneyness_pct": moneyness_pct,
-            "is_deep": abs(moneyness_pct) > 10
+            "is_deep": abs(moneyness_pct) > DEEP_THRESHOLD_PCT
         }
     
     # ========================================================================
@@ -199,8 +214,8 @@ class OptionsValidatorB3:
         b = gain / loss if loss > 0 else 0
         
         f_star = (p_success * b - q) / b if b > 0 else 0
-        f_quarter = f_star / 4
-        
+        f_quarter = f_star / KELLY_CONSERVATIVE_DIVISOR
+
         return {
             "f_star": f_star,
             "f_quarter": f_quarter,
@@ -273,11 +288,13 @@ class OptionsValidatorB3:
             print(f"⚠️ ERROS ENCONTRADOS: {len(self.errors)}")
             print(f"{'='*70}")
             for i, err in enumerate(self.errors, 1):
+                logger.warning("Erro #%d em %s: %s", i, self.ticker, err.get('erro', err))
                 print(f"\n{err['tipo']} #{i}:")
                 for key, value in err.items():
                     if key != 'tipo':
                         print(f"   {key}: {value}")
         else:
+            logger.info("Validação de %s concluída sem erros", self.ticker)
             print(f"\n✅ Nenhum erro encontrado!")
         
         return {

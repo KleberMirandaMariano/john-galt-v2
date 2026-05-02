@@ -8,7 +8,7 @@ NUNCA mencione preços de cripto sem executar os curls abaixo.
 
 ### Preços BTC, ETH, SOL
 shell: curl -s "https://openapiv1.coinstats.app/coins?limit=10" \
-  -H "X-API-KEY: c0u1/Hf2JHZPdEJ1/wepZ1GVtKf1/Hdmj85Lfsfj1jQ=" | python3 -c "
+  -H "X-API-KEY: ${COINSTATS_API_KEY}" | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 coins=['BTC','ETH','SOL']
@@ -19,7 +19,7 @@ for c in d.get('result',[]):
 
 ### Market Cap Global e Dominância
 shell: curl -s "https://openapiv1.coinstats.app/coins?limit=3" \
-  -H "X-API-KEY: c0u1/Hf2JHZPdEJ1/wepZ1GVtKf1/Hdmj85Lfsfj1jQ=" | python3 -c "
+  -H "X-API-KEY: ${COINSTATS_API_KEY}" | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
 total=sum(c.get('marketCap',0) for c in d.get('result',[]))

@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-TELEGRAM_BOT_TOKEN="8257136195:AAH-1UP7_LzmKwoFUnF_-VK_A5cCX2zW4-g"
-TELEGRAM_CHAT_ID="1808474055"
-WORKSPACE_DIR="/root/.zeroclaw/workspace"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:?Erro: TELEGRAM_BOT_TOKEN nao definido. Exporte a variavel antes de executar.}"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:?Erro: TELEGRAM_CHAT_ID nao definido.}"
+WORKSPACE_DIR="${ZEROCLAW_WORKSPACE:-/root/.zeroclaw/workspace}"
 LOG_FILE="${WORKSPACE_DIR}/fng_alert.log"
 FNG_THRESHOLD="${FNG_THRESHOLD:-25}"
 TIMEOUT_SEC=10

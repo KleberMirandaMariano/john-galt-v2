@@ -1,4 +1,4 @@
-name: 🚀 Deploy to VPS Hostinger
+name: 🚀 CI/CD — Validar e Deploy para VPS
 
 on:
   push:
@@ -6,30 +6,96 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy John Galt v2.0
+  # ─────────────────────────────────────────────
+  # JOB 1: Validação e Testes
+  # ─────────────────────────────────────────────
+  test:
+    name: 🧪 Validar e Testar
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
+    - name: 📥 Checkout
       uses: actions/checkout@v4
-    
-    - name: 📦 Deploy to VPS (via HTTPS Git Clone)
+
+    - name: 🐍 Setup Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: 📦 Instalar dependências
+      run: pip install -r requirements.txt
+
+    - name: ✅ Verificar sintaxe Python
       run: |
-        echo "🚀 Deploy Job iniciado..."
-        echo "📥 Clonando repositório..."
-        
-        # Clone do repo
-        if [ -d "/tmp/john-galt-ci" ]; then
-          rm -rf /tmp/john-galt-ci
-        fi
-        
-        git clone https://github.com/KleberMirandaMariano/john-galt-v2.git /tmp/john-galt-ci
-        
-        echo "✅ Repositório clonado com sucesso!"
-        echo ""
-        echo "📂 Conteúdo do repositório:"
-        ls -la /tmp/john-galt-ci/
-        echo ""
-        echo "✅ Deploy preparado!"
-        echo "   Próximo: Copiar para VPS via SSH (manual ou outro método)"
+        python -m py_compile agent_swarm_v2_0.py
+        python -m py_compile scripts/validate_options_b3.py
+        python -m py_compile scripts/generate_quant_report.py
+        python -m py_compile scripts/get_usdbrl.py
+        python -m py_compile scripts/read_cache.py
+        echo "✅ Sintaxe OK em todos os módulos"
+
+    - name: 🔬 Executar testes
+      run: python -m pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────────────
+  # JOB 2: Deploy para VPS (só após testes OK)
+  # ─────────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy para VPS
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+
+    - name: 🔑 Configurar chave SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+    - name: 🚀 Deploy via SSH
+      run: |
+        ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            bash -s << 'DEPLOY'
+          set -euo pipefail
+
+          REPO_DIR="/root/.zeroclaw/john-galt-v2"
+          WORKSPACE="/root/.zeroclaw/workspace"
+
+          echo "📥 Atualizando repositório..."
+          if [ -d "$REPO_DIR/.git" ]; then
+            git -C "$REPO_DIR" fetch origin main
+            git -C "$REPO_DIR" reset --hard origin/main
+          else
+            git clone https://github.com/KleberMirandaMariano/john-galt-v2.git "$REPO_DIR"
+          fi
+
+          echo "📂 Sincronizando configs, skills e scripts..."
+          cp -r "$REPO_DIR/config/"*    "$WORKSPACE/" 2>/dev/null || true
+          cp -r "$REPO_DIR/skills/"     "$WORKSPACE/" 2>/dev/null || true
+          cp -r "$REPO_DIR/scripts/"*.py "$WORKSPACE/" 2>/dev/null || true
+          cp -r "$REPO_DIR/scripts/"*.sh "$WORKSPACE/" 2>/dev/null || true
+          cp    "$REPO_DIR/agent_swarm_v2_0.py" "$WORKSPACE/" 2>/dev/null || true
+
+          echo "🔄 Reiniciando ZeroClaw..."
+          if command -v zeroclaw &>/dev/null; then
+            zeroclaw restart 2>/dev/null || echo "⚠️  zeroclaw restart não disponível"
+          elif systemctl is-active --quiet zeroclaw 2>/dev/null; then
+            systemctl restart zeroclaw
+          else
+            echo "ℹ️  ZeroClaw não gerenciado por systemd — reinicialização manual necessária"
+          fi
+
+          echo "✅ Deploy concluído em $(date '+%d/%m/%Y %H:%M:%S BRT')"
+        DEPLOY
+
+    - name: 🧹 Limpar chave SSH
+      if: always()
+      run: rm -f ~/.ssh/deploy_key

@@ -4,8 +4,11 @@ generate_quant_report.py — Gerar relatório quantitativo formatado
 Usa template da skill quant-report-format
 """
 
+import os
 from datetime import datetime
 from pathlib import Path
+
+WORKSPACE = Path(os.getenv('ZEROCLAW_WORKSPACE', '/root/.zeroclaw/workspace'))
 
 def generate_quant_report(
     ticker: str,
@@ -263,7 +266,7 @@ if __name__ == "__main__":
     print(report)
     
     # Salvar
-    output_file = Path("/root/.zeroclaw/workspace/cogn3_report_formatted.md")
+    output_file = WORKSPACE / "cogn3_report_formatted.md"
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(report)
     
