@@ -89,6 +89,15 @@ Output: Análise de correlação BTC vs Gold, teste "ouro digital", volatilidade
 JSON: /tmp/btc_gold_correlation.json
 Fontes: YFinance (BTC-USD, GC=F)
 
+### validate_strategy_backtest.py — Backtesting B3 (b3_trading_signals)
+Uso: python3 /root/.zeroclaw/workspace/validate_strategy_backtest.py TICKER [dias]
+Exemplo: python3 validate_strategy_backtest.py PETR4 365
+Output: Backtesting de 7 estratégias (SMA, EMA, BB, MACD), ranking por retorno/Sharpe/DD
+JSON: /tmp/backtest_TICKER_YYYYMMDD.json
+Estratégias: Médias Móveis (SMA 9/21, 21/50, 9/21/50), EMA (9/21, 12/26), Bollinger Bands (20,2), MACD (12,26,9)
+Métricas: Retorno total %, Sharpe Ratio, Max Drawdown %, Número de trades, Win Rate %
+Lib: b3_trading_signals (https://github.com/gkeiel/b3_trading_signals)
+
 ## Fórmulas Inline — Python
 
 ### Black-Scholes

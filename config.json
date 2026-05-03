@@ -1,0 +1,6 @@
+{
+  "backtest": {
+    "ma_volume": 10,
+    "initial_capital": 10000
+  }
+}
