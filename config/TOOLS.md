@@ -131,3 +131,72 @@ def dvr(iv_curto,iv_longo):
 - macro_snapshot.sh — Selic, câmbio, Ibovespa, CDS via API BCB
 - cripto_status.sh — BTC/SOL/ETH completo via OKX + CoinGecko
 - iv_calculator.py — Volatilidade implícita real via BRAPI
+
+### pre_analysis_validator.py — Validador Pré-Análise Cripto
+**USO OBRIGATÓRIO ANTES DE QUALQUER ANÁLISE QUANTITATIVA DE CRIPTO**
+
+Uso: python3 /root/.zeroclaw/workspace/pre_analysis_validator.py TICKER
+Exemplo: python3 pre_analysis_validator.py SOL
+
+**SEMPRE executar ANTES de gerar análise de:**
+- BTC, ETH, SOL, XRP, ADA, AVAX, DOT, MATIC
+
+**Output:**
+- Preço atual validado
+- Market Cap validado
+- HV (30d anualizada) calculado ✅ NUNCA ESTIMAR!
+- Z-Score calculado
+- Correlação BTC calculada (90d)
+- Correlação VIX calculada (90d)
+- JSON: /tmp/validated_TICKER_YYYYMMDD.json
+
+**Metodologia Correta:**
+
+1. **Volatilidade Histórica (HV):**
+```python
+returns_30d = hist['Close'].pct_change().tail(30)
+hv_30d = returns_30d.std() * np.sqrt(365) * 100
+```
+⚠️ CRÍTICO: Sempre anualizar (× √365)
+⚠️ CRÍTICO: Nunca estimar ou assumir valor
+
+2. **Correlação:**
+```python
+# Sempre usar 90 dias mínimo
+corr_btc = df['Asset'].corr(df['BTC'])
+```
+⚠️ CRÍTICO: Nunca assumir correlação alta
+⚠️ CRÍTICO: Sempre calcular, não estimar
+
+3. **Z-Score:**
+```python
+mean_30d = hist['Close'].tail(30).mean()
+std_30d = hist['Close'].tail(30).std()
+z_score = (current_price - mean_30d) / std_30d
+```
+⚠️ CRÍTICO: Atualizar diariamente
+⚠️ CRÍTICO: Muda rapidamente
+
+**Checklist Validação:**
+- [ ] Dados históricos ≥ 90 dias
+- [ ] Market Cap disponível
+- [ ] HV calculado (não estimado)
+- [ ] Correlação BTC calculada
+- [ ] Correlação VIX calculada
+- [ ] JSON salvo
+
+**NUNCA:**
+- ❌ Estimar volatilidade
+- ❌ Assumir correlação sem calcular
+- ❌ Usar dados > 24h sem recalcular
+- ❌ Confiar em memória/conhecimento prévio
+
+**SEMPRE:**
+- ✅ Executar validador ANTES da análise
+- ✅ Usar dados do JSON gerado
+- ✅ Mencionar data da validação
+- ✅ Recalcular se análise > 24h
+
+**Erros Históricos Corrigidos:**
+1. SOL 02/05/2026: HV 38% (errado) → 49.8% (correto)
+2. SOL 02/05/2026: Corr BTC +0.92 (errado) → +0.41 (correto)
