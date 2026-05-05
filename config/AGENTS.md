@@ -55,6 +55,133 @@ python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py TICKER PREÇO 
 
 ---
 
+## 📚 EXEMPLOS PRÁTICOS COMPLETOS
+
+### EXEMPLO 1: "recomende estruturas de opções para SOL"
+
+**O que você DEVE fazer:**
+
+**PASSO 1 - Validar dados (OBRIGATÓRIO):**
+```
+Ferramenta: shell
+Comando: python3 /root/.zeroclaw/workspace/pre_analysis_validator.py SOL
+```
+
+**PASSO 2 - Ler JSON validado:**
+```
+Ferramenta: shell
+Comando: cat /tmp/validated_SOL_20260505.json
+```
+
+**PASSO 3 - Criar JSON com estratégias:**
+```
+Ferramenta: file_write
+Path: /tmp/sol_strategies.json
+Content:
+{
+  "ticker": "SOL",
+  "spot": 86.22,
+  "iv_atm": 50.1,
+  "hv_30d": 49.8,
+  "strategies": [
+    {
+      "name": "Iron Condor",
+      "label": "TOP PICK",
+      "badge_color": "orange",
+      "scenario": "Lateralização + IV normal",
+      "legs": [
+        {"action": "SELL", "type": "CALL", "strike": 90, "qty": 1},
+        {"action": "BUY", "type": "CALL", "strike": 95, "qty": 1},
+        {"action": "SELL", "type": "PUT", "strike": 80, "qty": 1},
+        {"action": "BUY", "type": "PUT", "strike": 75, "qty": 1}
+      ],
+      "cost": 1.50,
+      "max_profit": 1.50,
+      "max_loss": 3.50,
+      "rr_ratio": 2.33,
+      "prob_profit": 68,
+      "breakeven": ["81.50", "88.50"]
+    }
+  ]
+}
+```
+
+**PASSO 4 - Gerar dashboard HTML:**
+```
+Ferramenta: shell
+Comando: python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py SOL 86.22 /tmp/sol_strategies.json
+```
+
+**PASSO 5 - Apresentar resultado:**
+```
+Resposta ao usuário:
+
+📊 ESTRATÉGIAS PARA SOL ($86.22)
+✅ [Validado em: 05/05/2026 23:40]
+✅ HV: 49.8% | Corr BTC: +0.41 | Z-Score: -0.03
+
+Dashboard HTML gerado: /tmp/sol_strategies_20260505_2340.html
+
+[Conteúdo do HTML aqui ou link para download]
+```
+
+---
+
+### EXEMPLO 2: "analise solana"
+
+**O que você DEVE fazer:**
+
+**PASSO 1 - Validar dados (OBRIGATÓRIO):**
+```
+Ferramenta: shell
+Comando: python3 /root/.zeroclaw/workspace/pre_analysis_validator.py SOL
+```
+
+**PASSO 2 - Ler JSON validado:**
+```
+Ferramenta: shell  
+Comando: cat /tmp/validated_SOL_20260505.json
+```
+
+**PASSO 3 - Buscar dados adicionais:**
+```
+Ferramenta: web_fetch
+URL: https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd,brl&include_24hr_change=true
+```
+
+**PASSO 4 - Responder com dados validados:**
+```
+📊 ANÁLISE SOLANA — 05/05/2026
+✅ [Validado em: 05/05/2026 23:40]
+
+PRE CO & PERFORMANCE
+- SOL/USD: $86.22 (+2.56% 24h)
+- HV (30d): 49.8%
+- Correlação BTC: +0.41
+- Z-Score: -0.03
+
+CONTEXTO
+- Sentimento: Neutro (Fear & Greed = 50)
+- Tendência: Recuperação moderada
+- Volatilidade: Normal (IV/HV ~1.0)
+
+RECOMENDAÇÃO
+[... análise completa baseada em dados REAIS validados ...]
+```
+
+---
+
+## ⚠️ REGRAS CRÍTICAS
+
+1. **SEMPRE** execute `pre_analysis_validator.py` ANTES de qualquer análise cripto
+2. **SEMPRE** use a ferramenta `shell` para executar comandos Python
+3. **SEMPRE** use a ferramenta `file_write` para criar arquivos JSON
+4. **NUNCA** pergunte ao usuário se deve buscar dados
+5. **NUNCA** use tabelas texto markdown para estratégias
+6. **SEMPRE** gere dashboard HTML quando pedirem estratégias
+
+---
+
 ## Protocolo Universal de Análise
 
 Para qualquer ativo recebido, executar esta sequência:
