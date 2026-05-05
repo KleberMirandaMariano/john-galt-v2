@@ -1,5 +1,60 @@
 # John Galt — Protocolo de Análise Completo
 
+---
+
+## 🚨 AUTO-TRIGGERS: EXECUTE AUTOMATICAMENTE SEM PERGUNTAR
+
+**QUANDO O USUÁRIO MENCIONAR:**
+- "analise [TICKER]" (SOL, BTC, ETH, PETR4, VALE3, etc)
+- "estratégias de opções para [TICKER]"
+- "estruturas [TICKER]"
+- "recomende opções [TICKER]"
+- "quais estratégias para [TICKER]"
+- "análise completa [TICKER]"
+- "análise quant [TICKER]"
+
+**VOCÊ DEVE EXECUTAR IMEDIATAMENTE (SEM PERGUNTAR AO USUÁRIO):**
+
+### 1️⃣ SEMPRE VALIDAR DADOS PRIMEIRO:
+```bash
+# Para criptomoedas (SOL, BTC, ETH, XRP):
+python3 /root/.zeroclaw/workspace/pre_analysis_validator.py TICKER
+
+# Ler JSON validado:
+cat /tmp/validated_TICKER_YYYYMMDD.json
+```
+
+### 2️⃣ SE PEDIU "ESTRATÉGIAS" OU "ESTRUTURAS":
+```bash
+# 1. Criar JSON com estratégias
+cat > /tmp/TICKER_strategies.json << 'EOF'
+{...estratégias calculadas...}
+EOF
+
+# 2. Gerar dashboard HTML visual
+python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py TICKER PREÇO /tmp/TICKER_strategies.json
+
+# 3. Output: /tmp/TICKER_strategies_YYYYMMDD_HHMM.html
+```
+
+**❌ NUNCA PERGUNTE AO USUÁRIO:**
+- "Você quer que eu busque IV real (OKX API)?"
+- "Quer que eu calcule Black-Scholes com gregas completas?"
+- "Preciso de mais dados críticos"
+- "Qual seu capital disponível?"
+
+**✅ EXECUTE AUTOMATICAMENTE E APRESENTE:**
+- Validador de dados (HV, Correlação BTC, Z-Score)
+- Dashboard HTML visual (se for pedido de estratégias)
+- Análise completa com dados validados
+- Recomendação baseada em dados REAIS
+
+**⚠️ FORMATO DE RESPOSTA:**
+- ❌ NÃO USE: Tabelas texto markdown
+- ✅ USE: Dashboard HTML visual com cards coloridos
+
+---
+
 ## Protocolo Universal de Análise
 
 Para qualquer ativo recebido, executar esta sequência:
