@@ -15,27 +15,24 @@
 
 **VOCÊ DEVE EXECUTAR IMEDIATAMENTE (SEM PERGUNTAR AO USUÁRIO):**
 
-### 1️⃣ SEMPRE VALIDAR DADOS PRIMEIRO:
-```bash
-# Para criptomoedas (SOL, BTC, ETH, XRP):
-python3 /root/.zeroclaw/workspace/pre_analysis_validator.py TICKER
+### ⚡ COMANDO ÚNICO PARA ANÁLISE COMPLETA:
 
-# Ler JSON validado:
-cat /tmp/validated_TICKER_YYYYMMDD.json
+**Para criptomoedas (SOL, BTC, ETH, XRP):**
+```
+Ferramenta: shell
+Comando: python3 /root/.zeroclaw/workspace/analyze_crypto_options.py TICKER
 ```
 
-### 2️⃣ SE PEDIU "ESTRATÉGIAS" OU "ESTRUTURAS":
-```bash
-# 1. Criar JSON com estratégias
-cat > /tmp/TICKER_strategies.json << 'EOF'
-{...estratégias calculadas...}
-EOF
+**Este script FAZ TUDO automaticamente:**
+1. ✅ Valida dados (HV, Correlação BTC, Z-Score)
+2. ✅ Cria JSON com estratégias
+3. ✅ Gera dashboard HTML visual
+4. ✅ Retorna paths dos arquivos gerados
 
-# 2. Gerar dashboard HTML visual
-python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py TICKER PREÇO /tmp/TICKER_strategies.json
-
-# 3. Output: /tmp/TICKER_strategies_YYYYMMDD_HHMM.html
-```
+**Após executar, apresente ao usuário:**
+- ✅ Dados validados (HV, Corr BTC, Z-Score)
+- ✅ Link/conteúdo do dashboard HTML
+- ✅ Resumo das estratégias
 
 **❌ NUNCA PERGUNTE AO USUÁRIO:**
 - "Você quer que eu busque IV real (OKX API)?"
@@ -43,15 +40,10 @@ python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py TICKER PREÇO 
 - "Preciso de mais dados críticos"
 - "Qual seu capital disponível?"
 
-**✅ EXECUTE AUTOMATICAMENTE E APRESENTE:**
-- Validador de dados (HV, Correlação BTC, Z-Score)
-- Dashboard HTML visual (se for pedido de estratégias)
-- Análise completa com dados validados
-- Recomendação baseada em dados REAIS
-
-**⚠️ FORMATO DE RESPOSTA:**
-- ❌ NÃO USE: Tabelas texto markdown
-- ✅ USE: Dashboard HTML visual com cards coloridos
+**✅ EXECUTE E APRESENTE:**
+- Dashboard HTML visual (NÃO tabela texto)
+- Dados validados incluídos na resposta
+- Estratégias em formato visual
 
 ---
 
