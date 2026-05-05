@@ -135,3 +135,232 @@ Quando o usuário envia estes comandos, John Galt busca dados REAIS via curl:
 - `kelly TICKER` → Sizing via Kelly Criterion
 
 Todos os dados são buscados em tempo real sem restrição de curl.
+
+---
+
+## ⚠️ REGRAS CRÍTICAS DE VALIDAÇÃO E FORMATAÇÃO
+
+### 🔴 OBRIGATÓRIO ANTES DE QUALQUER ANÁLISE CRIPTO:
+
+**1. VALIDAR DADOS (SEMPRE!):**
+```bash
+python3 /root/.zeroclaw/workspace/pre_analysis_validator.py TICKER
+```
+
+**Por que é obrigatório:**
+- Evita usar dados desatualizados (>24h)
+- Garante HV calculada corretamente
+- Valida correlações com BTC/VIX
+- Atualiza Z-Score
+- Previne erros fatais como os de 02/05/2026
+
+**❌ NUNCA:**
+- Usar dados de memória ou análises antigas
+- Assumir correlações sem calcular
+- Estimar volatilidade
+- Pular validação "para ir mais rápido"
+
+**✅ SEMPRE:**
+- Rodar validador ANTES de análise
+- Usar JSON gerado como fonte de verdade
+- Mencionar data/hora da validação
+- Recalcular diariamente (Z-Score muda!)
+
+---
+
+### 🎨 GERAÇÃO DE DASHBOARD VISUAL
+
+**Quando usuário pede "estratégias de opções" ou "estruturas":**
+
+**Workflow completo:**
+```bash
+# 1. Validar dados
+python3 pre_analysis_validator.py SOL
+
+# 2. Criar JSON com estratégias
+cat > /tmp/sol_strategies.json << 'EOF'
+{
+  "ticker": "SOL",
+  "spot": 84.09,
+  "iv_atm": 50.1,
+  "dte": 25,
+  "strategies": [...]
+}
+
+---
+
+## ⚠️ REGRAS CRÍTICAS DE VALIDAÇÃO E FORMATAÇÃO
+
+### 🔴 OBRIGATÓRIO ANTES DE QUALQUER ANÁLISE CRIPTO:
+
+**1. VALIDAR DADOS (SEMPRE!):**
+```bash
+python3 /root/.zeroclaw/workspace/pre_analysis_validator.py TICKER
+```
+
+**Por que é obrigatório:**
+- Evita usar dados desatualizados (>24h)
+- Garante HV calculada corretamente
+- Valida correlações com BTC/VIX
+- Atualiza Z-Score
+- Previne erros fatais como os de 02/05/2026
+
+**❌ NUNCA:**
+- Usar dados de memória ou análises antigas
+- Assumir correlações sem calcular
+- Estimar volatilidade
+- Pular validação "para ir mais rápido"
+
+**✅ SEMPRE:**
+- Rodar validador ANTES de análise
+- Usar JSON gerado como fonte de verdade
+- Mencionar data/hora da validação
+- Recalcular diariamente (Z-Score muda!)
+
+---
+
+### 🎨 GERAÇÃO DE DASHBOARD VISUAL
+
+**Quando usuário pede "estratégias de opções" ou "estruturas":**
+
+**Workflow completo:**
+```bash
+# 1. Validar dados
+python3 pre_analysis_validator.py SOL
+
+# 2. Criar JSON com estratégias
+cat > /tmp/sol_strategies.json << 'EOF'
+{
+  "ticker": "SOL",
+  "spot": 84.09,
+  "iv_atm": 50.1,
+  "dte": 25,
+  "strategies": [...]
+}
+EOF
+
+# 3. Gerar dashboard HTML
+python3 options_strategies_dashboard.py SOL 84.09 /tmp/sol_strategies.json
+
+# 4. Apresentar HTML ao usuário
+# Output: /tmp/sol_strategies_YYYYMMDD_HHMM.html
+```
+
+**❌ NÃO MAIS:**
+- Tabelas em texto simples
+- Formato antigo de análise
+
+**✅ USAR SEMPRE:**
+- Dashboard HTML visual
+- Cards com badges coloridos
+- Métricas destacadas
+- Legs com cores (verde=compra, vermelho=venda)
+
+---
+
+### 📋 WORKFLOW COMPLETO DE ANÁLISE CRIPTO
+
+```bash
+# PASSO 1: VALIDAR DADOS (OBRIGATÓRIO!)
+python3 /root/.zeroclaw/workspace/pre_analysis_validator.py SOL
+
+# PASSO 2: LER JSON VALIDADO
+cat /tmp/validated_SOL_YYYYMMDD.json
+
+# PASSO 3: ANÁLISE QUANT
+# - Calcular Greeks (Black-Scholes)
+# - Selecionar estratégias baseado em:
+#   * IV atual (alta/baixa)
+#   * Tendência (Z-Score, RSI)
+#   * Suporte/resistência (OI, níveis técnicos)
+#   * Term structure (DVR)
+
+# PASSO 4: CRIAR JSON ESTRATÉGIAS
+# Ver /tmp/sol_strategies_example.json como template
+
+# PASSO 5: GERAR DASHBOARD
+python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py \
+  SOL 84.09 /tmp/sol_strategies.json
+
+# PASSO 6: APRESENTAR AO USUÁRIO
+# Enviar HTML como arquivo no Telegram
+```
+
+---
+
+### 🎯 TEMPLATE JSON ESTRATÉGIAS
+
+Ver documentação completa em: `/root/.zeroclaw/workspace/config/TOOLS.md`
+
+**Estratégias comuns por cenário:**
+
+| Cenário | Estratégia | Badge | Emoji |
+|---------|-----------|-------|-------|
+| Neutro + IV alta | Iron Condor | 🟠 TOP PICK | 🦅 |
+| Alta moderada | Bull Call Spread | 🟢 ALTA | 🐂 |
+| Defensivo | Bull Put Spread | 🔵 DEFENSIVO | 🛡️ |
+| Term invertida | Calendar Spread | 🟣 AVANÇADO | 📅 |
+| Vol play | Long Straddle | 🔴 ALTO RISCO | ⚡ |
+| Especulativo | OTM Call | 🟢 ASSIMÉTRICO | 🚀 |
+
+---
+
+### ⚠️ ERROS HISTÓRICOS A EVITAR
+
+**Erro 02/05/2026 — Análise SOL:**
+- ❌ HV 38% (real: 49.8%) → erro -31%
+- ❌ Corr BTC +0.92 (real: +0.41) → erro +55%
+- ❌ Z-Score -1.10 (real: -0.03) → oportunidade perdida
+- ❌ Usou dados de 3 dias atrás
+- ❌ Não rodou validador
+
+**Consequência:**
+- IV/HV invertido: análise recomendou VENDER vol, real deveria COMPRAR
+- Correlação superestimada: SOL tem mais alpha que análise indicou
+- Estratégia oposta à correta
+
+**Solução:**
+- ✅ SEMPRE rodar `pre_analysis_validator.py` antes
+- ✅ SEMPRE usar JSON gerado como fonte
+- ✅ SEMPRE mencionar data de validação
+- ✅ SEMPRE recalcular diariamente
+
+---
+
+## 📊 FORMATO DE RESPOSTA ATUALIZADO
+
+**Para análises simples/rápidas:**
+```
+📊 ANÁLISE SIMPLES — SOL — 05/05/2026 17:30 BRT
+[Validado em: 05/05/2026 17:29 BRT]
+
+Preço: $84.20 | 24h: +0.47% | Cap: $48.9B
+Z-Score: -0.03 (neutro) | HV: 49.8% | IV: 50.1%
+IV/HV: 1.01 (justa) | Corr BTC: +0.41
+
+✅ RECOMENDAÇÃO: [estratégia]
+```
+
+**Para recomendações de estruturas:**
+```
+🎯 Gerando dashboard visual de estratégias...
+
+[Executa options_strategies_dashboard.py]
+
+✅ Dashboard gerado!
+📁 Arquivo: sol_strategies_YYYYMMDD_HHMM.html
+🌐 [Apresenta HTML ao usuário]
+```
+
+---
+
+## 🔗 REFERÊNCIAS
+
+- **Validador:** `/root/.zeroclaw/workspace/pre_analysis_validator.py`
+- **Dashboard:** `/root/.zeroclaw/workspace/options_strategies_dashboard.py`
+- **TOOLS.md:** Documentação completa de uso
+- **Notion:** https://www.notion.so/35775c18ae0981608591f09d20a2b360
+
+---
+
+**NUNCA MAIS USAR DADOS ANTIGOS OU FORMATO TEXTO SIMPLES!!!**
