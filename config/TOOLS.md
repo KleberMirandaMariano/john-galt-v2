@@ -200,3 +200,92 @@ z_score = (current_price - mean_30d) / std_30d
 **Erros Históricos Corrigidos:**
 1. SOL 02/05/2026: HV 38% (errado) → 49.8% (correto)
 2. SOL 02/05/2026: Corr BTC +0.92 (errado) → +0.41 (correto)
+
+### options_strategies_dashboard.py — Gerador Visual de Estratégias de Opções
+**USO: Quando usuário pedir recomendações de estruturas/estratégias de opções**
+
+Uso: python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py TICKER SPOT [strategies.json]
+Exemplo: python3 options_strategies_dashboard.py SOL 84.09 strategies.json
+
+**Quando usar:**
+- Usuário solicita "recomendar estruturas de opções"
+- Usuário pede "estratégias de opções para X"
+- Usuário quer visualizar "quadro de estratégias"
+- Após análise quant, mostrar estratégias visualmente
+
+**Workflow completo:**
+1. Executar pre_analysis_validator.py (validar dados)
+2. Calcular estratégias (Iron Condor, Bull/Bear Spreads, Straddles, etc)
+3. Criar JSON com estratégias
+4. Executar options_strategies_dashboard.py
+5. Apresentar HTML ao usuário
+
+**Formato JSON das estratégias:**
+```json
+{
+  "ticker": "SOL",
+  "spot": 84.09,
+  "iv_atm": 50.1,
+  "dte": 25,
+  "strategies": [
+    {
+      "emoji": "🦅",
+      "name": "Iron Condor",
+      "type_desc": "Neutro · Range-bound · Vende volatilidade",
+      "badge_color": "orange",
+      "badge_text": "⭐ TOP PICK",
+      "metrics": [
+        {"value": "+$2.73", "label": "Crédito Recebido", "color": "green"},
+        {"value": "-$1.27", "label": "Perda Máxima", "color": "red"},
+        {"value": "2.15:1", "label": "Risk/Reward", "color": "blue"},
+        {"value": "$77-$95", "label": "Break-evens", "color": "yellow"}
+      ],
+      "legs": [
+        {"action": "BUY", "strike": 80, "type": "PUT", "premium": 2.56},
+        {"action": "SELL", "strike": 84, "type": "PUT", "premium": 4.27},
+        {"action": "SELL", "strike": 88, "type": "CALL", "premium": 2.79},
+        {"action": "BUY", "strike": 92, "type": "CALL", "premium": 1.77}
+      ],
+      "note": "Descrição/insight da estratégia"
+    }
+  ]
+}
+```
+
+**Cores de badge disponíveis:**
+- orange: TOP PICK / destaque principal
+- green: ALTA / otimista
+- blue: DEFENSIVO / conservador
+- red: ALTO RISCO / agressivo
+- purple: AVANÇADO / complexo
+- yellow: MODERADO
+
+**Cores de métricas:**
+- green: valores positivos (crédito, lucro)
+- red: valores negativos (débito, perda)
+- blue: neutros/informativos (RR, direcional)
+- yellow: níveis/pontos (break-even, strikes)
+
+**Estratégias comuns:**
+1. Iron Condor (neutro, vende vol)
+2. Bull/Bear Call Spread (direcional limitado)
+3. Bull/Bear Put Spread (direcional crédito)
+4. Calendar Spread (vende front month)
+5. Long/Short Straddle (vol play)
+6. Long/Short Strangle (vol play OTM)
+7. Butterfly (range muito estreito)
+8. OTM Call/Put especulativo (assimétrico)
+
+**Output:**
+- HTML: /tmp/TICKER_strategies_YYYYMMDD_HHMM.html
+- Visual profissional dark-theme
+- Responsivo (desktop/mobile)
+- Cards com métricas, legs, notas
+- Badge de classificação
+
+**SEMPRE:**
+- ✅ Validar dados antes (pre_analysis_validator.py)
+- ✅ Calcular Greeks corretamente (Black-Scholes)
+- ✅ Incluir note com insight/contexto
+- ✅ Usar emoji apropriado
+- ✅ Mencionar data de geração
