@@ -9,6 +9,8 @@ import os
 from typing import Dict, List
 import json
 from datetime import datetime
+import requests
+
 
 class ReflectionEngine:
     """
@@ -21,16 +23,81 @@ class ReflectionEngine:
     4. Repete até qualidade adequada (max 3 iterações)
     """
     
-    def __init__(self, model: str = "claude-sonnet-4-20250514"):
+    def __init__(
+        self, 
+        model: str = "claude-sonnet-4-20250514",
+        api_key: str = None,
+        base_url: str = "https://openrouter.ai/api/v1"
+    ):
         """
         Inicializa Reflection Engine
         
         Args:
             model: Modelo Claude para usar (default: Sonnet 4)
+            api_key: OpenRouter API key (ou usa OPENROUTER_API_KEY env)
+            base_url: URL base da API (OpenRouter)
         """
         self.model = model
         self.max_iterations = 3
         self.quality_threshold = 0.85
+        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+        self.base_url = base_url
+        
+        if not self.api_key:
+            raise ValueError(
+                "API key required. Set OPENROUTER_API_KEY env or pass api_key"
+            )
+    
+    def _call_claude(self, prompt: str) -> str:
+        """
+        Chama Claude API via OpenRouter
+        
+        Args:
+            prompt: Prompt para enviar
+        
+        Returns:
+            Resposta do modelo
+        """
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "max_tokens": 4000,
+            "temperature": 0.3  # Baixa para análise crítica consistente
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json=data,
+                timeout=60
+            )
+            
+            response.raise_for_status()
+            result = response.json()
+            
+            return result["choices"][0]["message"]["content"]
+            
+        except Exception as e:
+            print(f"⚠️  API Error: {e}")
+            # Em caso de erro, retornar estrutura vazia
+            return json.dumps({
+                "issues_found": [],
+                "suggestions": [],
+                "needs_refinement": False,
+                "quality_score": 0.5
+            })
         
     def reflect_on_analysis(
         self, 
@@ -126,22 +193,22 @@ RESPONDA EM JSON (SEM MARKDOWN):
 SEJA RIGOROSO. Se houver QUALQUER problema crítico, needs_refinement = true.
 """
         
-        # Aqui você integraria com Claude API
-        # Por enquanto, estrutura de exemplo:
+        # Chamar Claude API
+        response = self._call_claude(reflection_prompt)
         
-        # TODO: Integrar com OpenRouter/Anthropic API
-        # response = self._call_claude(reflection_prompt)
-        # reflection = json.loads(response)
-        
-        # Exemplo de estrutura de retorno:
-        reflection = {
-            "issues_found": [],
-            "suggestions": [],
-            "needs_refinement": False,
-            "quality_score": 0.9,
-            "missing_validations": [],
-            "calculation_errors": []
-        }
+        try:
+            # Parse JSON response
+            reflection = json.loads(response.strip())
+        except json.JSONDecodeError:
+            # Se não conseguir parsear, retornar estrutura padrão
+            reflection = {
+                "issues_found": ["Failed to parse reflection response"],
+                "suggestions": [],
+                "needs_refinement": True,
+                "quality_score": 0.5,
+                "missing_validations": [],
+                "calculation_errors": []
+            }
         
         return reflection
     
@@ -195,13 +262,10 @@ INSTRUÇÕES:
 Retorne APENAS a análise refinada (sem meta-comentários).
 """
         
-        # TODO: Integrar com OpenRouter/Anthropic API
-        # refined = self._call_claude(refinement_prompt)
+        # Chamar Claude API
+        refined = self._call_claude(refinement_prompt)
         
-        # Por enquanto, retorna original
-        refined = original
-        
-        return refined
+        return refined.strip()
     
     def analyze_with_reflection(
         self,

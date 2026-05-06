@@ -1,0 +1,22 @@
+{
+  "ticker": "SOL",
+  "timestamp": "2026-05-06T22:46:01.196479",
+  "data_fetch": {
+    "duration_seconds": 0.602119,
+    "agents_succeeded": 6,
+    "agents_executed": 6
+  },
+  "reflection": {
+    "iterations": 1,
+    "final_quality": 0.85
+  },
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "score": 1.0,
+    "checks_passed": 5,
+    "total_checks": 5
+  },
+  "final_analysis": "\n## \ud83d\udcca SOL OPTIONS ANALYSIS\n\n**Generated:** 2026-05-06 22:46:01\n\n### \ud83d\udcb0 Market Data\n- **Spot Price:** $88.88\n- **IV ATM:** 85.0%\n- **Historical Vol:** 92.5%\n- **HV/IV Ratio:** 1.088235294117647\n\n### \ud83d\udd17 Correlations & Sentiment\n- **BTC Correlation:** 0.78\n- **Fear & Greed Index:** 65\n\n### \ud83c\udfaf Recommended Structures\n\n**1. Bull Call Spread**\n- Buy Call $88 @ $3.45\n- Sell Call $95 @ $1.20\n- Net Cost: $2.25\n- Max Profit: $4.75 (+211%)\n- Max Loss: $2.25 (-100%)\n- Break-even: $90.25\n\n**Risk/Reward:** 2.11:1\n**P(Profit):** 48%\n\n**Scenarios:**\n- \ud83d\udfe2 Alta (>$95): +211%\n- \ud83d\udd35 Lateral ($88-$95): -30% to +150%\n- \ud83d\udd34 Baixa (<$88): -100%\n\n### \u26a0\ufe0f  Risks\n- Theta decay: -0.12/day\n- IV contraction risk\n- Time to expiry: 30 days\n\n### \ud83d\udcc8 Sizing Suggestion\n- Kelly Criterion: 8% of capital\n- Conservative: 3-5% position size\n"
+}
