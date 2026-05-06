@@ -290,69 +290,93 @@ Exemplo: python3 options_strategies_dashboard.py SOL 84.09 strategies.json
 - ✅ Usar emoji apropriado
 - ✅ Mencionar data de geração
 
-### telegram_summary_generator.py — Gerador de Resumo Markdown para Telegram
-**USO: Gerar resumo compacto das top estratégias para Telegram**
+### telegram_summary_generator.py — Gerador de Resumo Markdown ELEGANTE para Telegram
+**USO: Gerar resumo PREMIUM em Markdown formatado para Telegram (top 3 estratégias)**
 
 Uso: python3 /root/.zeroclaw/workspace/telegram_summary_generator.py strategies.json
 Exemplo: python3 telegram_summary_generator.py /tmp/sol_strategies.json
+Output: strategies_telegram.md
+
+**VERSÃO ATUAL: ELEGANTE (Premium Visual)**
 
 **Quando usar:**
 - SEMPRE após gerar dashboard HTML de estratégias
-- Para criar mensagem Telegram amigável
-- Quando usuário pede estratégias de opções
-
-**Workflow completo (OPÇÃO 4 - HÍBRIDO):**
-```bash
-# 1. Validar dados
-python3 pre_analysis_validator.py SOL
-
-# 2. Criar JSON com estratégias
-cat > /tmp/sol_strategies.json << 'EOF'
-{...}
-
-### telegram_summary_generator.py — Gerador de Resumo Markdown para Telegram
-**USO: Gerar resumo compacto das top estratégias para Telegram**
-
-Uso: python3 /root/.zeroclaw/workspace/telegram_summary_generator.py strategies.json
-Exemplo: python3 telegram_summary_generator.py /tmp/sol_strategies.json
-
-**Quando usar:**
-- SEMPRE após gerar dashboard HTML de estratégias
-- Para criar mensagem Telegram amigável
-- Quando usuário pede estratégias de opções
+- Para criar mensagem Telegram com visual profissional
+- Quando usuário pede estruturas de opções
 
 **Workflow completo (OPÇÃO 4 - HÍBRIDO):**
 1. Validar dados: `python3 pre_analysis_validator.py SOL`
-2. Criar JSON com estratégias
-3. Gerar dashboard HTML: `python3 options_strategies_dashboard.py SOL 88.68 /tmp/sol_strategies.json`
+2. Criar JSON com estratégias (6 estruturas)
+3. Gerar dashboard HTML: `python3 options_strategies_dashboard.py SOL 88.88 /tmp/sol_strategies.json`
 4. Gerar resumo Telegram: `python3 telegram_summary_generator.py /tmp/sol_strategies.json`
 5. Enviar no Telegram: mensagem Markdown + HTML anexado
 
-**Output Telegram Markdown:**
-- Top 3 estratégias (ordenadas por relevância)
-- Badges em emoji (⭐🟢🔵🔴🟣🟡)
-- Métricas principais (custo, lucro, RR)
-- Insight resumido (primeira frase da nota)
-- Formatação Markdown do Telegram
-- Link para HTML completo
+**Formato de Output ELEGANTE:**
 
-**Recursos:**
-✅ Top 3 estratégias
-✅ Badges em emoji
-✅ Métricas principais
-✅ Insight resumido
-✅ Formatação Telegram
-✅ Link HTML completo
+```markdown
+╔═══════════════════════════════════╗
+  SOL OPTIONS DASHBOARD
+╚═══════════════════════════════════╝
+
+💰 *Spot Price*
+   $88.88
+
+📊 *Volatilidade Implícita*
+   85.0% a.a.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+╭─── ESTRATÉGIA #1 ───────────────
+│ 🐂 *Trava de Alta (Call Spread)*
+│ ⭐ _TOP PICK_
+╰────────────────────────────────
+
+📋 Otimista moderado · Risco limitado
+
+📊 *MÉTRICAS PRINCIPAIS*
+
+   💵 Custo Líquido
+   `-$2.493`
+
+   💰 Ganho Máximo
+   `+$4.507`
+
+   ⚖️ Risk/Reward
+   `1:1.81`
+
+💡 *INSIGHT*
+_Com SOL em recuperação (+3.59%)..._
+
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+[+ 2 estratégias adicionais]
+```
+
+**Recursos PREMIUM:**
+✅ **Box ASCII duplo** no header (╔═══╗)
+✅ **Boxes laterais** para cada estratégia (╭───╮)
+✅ **Separadores elegantes**: ━━━ (grossa) / ┈┈┈ (pontilhada)
+✅ **Emojis específicos por métrica**:
+   - 💵 Custo/Crédito
+   - 💰 Lucro/Ganho
+   - ⚖️ Risk/Reward
+   - 🎯 Break-even
+✅ **Valores destacados** em backticks
+✅ **Badges premium**: ⭐ TOP PICK, ⚠️ ALTO RISCO, 🎲 ESPECULATIVO
+✅ **Hierarquia visual** clara
+✅ **Espaçamento generoso**
+✅ **Profissionalismo institucional**
 
 **SEMPRE:**
 ✅ Gerar AMBOS: resumo Telegram + dashboard HTML
 ✅ Enviar mensagem Markdown + HTML anexado
-✅ Usuário vê resumo instantâneo
+✅ Usuário vê resumo instantâneo premium
 ✅ Se quiser detalhes → abre HTML
 
-**Vantagens da Opção 4 (Híbrido):**
-📱 Resumo visível imediatamente no Telegram
+**Vantagens da Opção 4 (Híbrido) + Visual Elegante:**
+📱 Resumo premium visível imediatamente no Telegram
 🎨 Dashboard completo para análise detalhada
 ⚡ Não precisa baixar HTML para decisão rápida
 📎 HTML disponível para análise profunda
+✨ Visual de plataforma institucional
 🏆 Melhor de ambos os mundos!
