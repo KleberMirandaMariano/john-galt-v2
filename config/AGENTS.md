@@ -270,6 +270,26 @@ Limites de risco:
 2. Execute análise completa seguindo o protocolo acima
 3. Apresente no formato dashboard estruturado
 
+### COMANDO: estruturas TICKER ou estratégias TICKER ou opções TICKER
+🚨 **OBRIGATÓRIO: GERAR DASHBOARD VISUAL HTML!!!**
+1. Validar dados: `python3 pre_analysis_validator.py TICKER`
+2. Calcular estratégias (Black-Scholes, Greeks, IV/HV)
+3. Criar JSON com estratégias (ver formato em TOOLS.md)
+4. Gerar dashboard: `python3 options_strategies_dashboard.py TICKER SPOT strategies.json`
+5. **APRESENTAR HTML AO USUÁRIO** (NÃO texto simples!)
+
+**❌ NUNCA MAIS:**
+- Enviar lista de estratégias em texto simples
+- Usar tabelas/bullets para estruturas
+- Formato antigo de análise
+
+**✅ SEMPRE:**
+- Dashboard HTML visual com cards
+- Badges coloridos (TOP PICK, ALTA, DEFENSIVO, etc)
+- Métricas em grid 2x2
+- Legs verde/vermelho
+- HTML responsivo dark-theme
+
 ### COMANDO: macro
 Informe: Selic atual, USD/BRL, Ibovespa, IVOL-BR, CDS Brasil
 Use dados do b3_cotacoes.txt + conhecimento de contexto
