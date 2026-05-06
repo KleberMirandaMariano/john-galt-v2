@@ -289,3 +289,70 @@ Exemplo: python3 options_strategies_dashboard.py SOL 84.09 strategies.json
 - ✅ Incluir note com insight/contexto
 - ✅ Usar emoji apropriado
 - ✅ Mencionar data de geração
+
+### telegram_summary_generator.py — Gerador de Resumo Markdown para Telegram
+**USO: Gerar resumo compacto das top estratégias para Telegram**
+
+Uso: python3 /root/.zeroclaw/workspace/telegram_summary_generator.py strategies.json
+Exemplo: python3 telegram_summary_generator.py /tmp/sol_strategies.json
+
+**Quando usar:**
+- SEMPRE após gerar dashboard HTML de estratégias
+- Para criar mensagem Telegram amigável
+- Quando usuário pede estratégias de opções
+
+**Workflow completo (OPÇÃO 4 - HÍBRIDO):**
+```bash
+# 1. Validar dados
+python3 pre_analysis_validator.py SOL
+
+# 2. Criar JSON com estratégias
+cat > /tmp/sol_strategies.json << 'EOF'
+{...}
+
+### telegram_summary_generator.py — Gerador de Resumo Markdown para Telegram
+**USO: Gerar resumo compacto das top estratégias para Telegram**
+
+Uso: python3 /root/.zeroclaw/workspace/telegram_summary_generator.py strategies.json
+Exemplo: python3 telegram_summary_generator.py /tmp/sol_strategies.json
+
+**Quando usar:**
+- SEMPRE após gerar dashboard HTML de estratégias
+- Para criar mensagem Telegram amigável
+- Quando usuário pede estratégias de opções
+
+**Workflow completo (OPÇÃO 4 - HÍBRIDO):**
+1. Validar dados: `python3 pre_analysis_validator.py SOL`
+2. Criar JSON com estratégias
+3. Gerar dashboard HTML: `python3 options_strategies_dashboard.py SOL 88.68 /tmp/sol_strategies.json`
+4. Gerar resumo Telegram: `python3 telegram_summary_generator.py /tmp/sol_strategies.json`
+5. Enviar no Telegram: mensagem Markdown + HTML anexado
+
+**Output Telegram Markdown:**
+- Top 3 estratégias (ordenadas por relevância)
+- Badges em emoji (⭐🟢🔵🔴🟣🟡)
+- Métricas principais (custo, lucro, RR)
+- Insight resumido (primeira frase da nota)
+- Formatação Markdown do Telegram
+- Link para HTML completo
+
+**Recursos:**
+✅ Top 3 estratégias
+✅ Badges em emoji
+✅ Métricas principais
+✅ Insight resumido
+✅ Formatação Telegram
+✅ Link HTML completo
+
+**SEMPRE:**
+✅ Gerar AMBOS: resumo Telegram + dashboard HTML
+✅ Enviar mensagem Markdown + HTML anexado
+✅ Usuário vê resumo instantâneo
+✅ Se quiser detalhes → abre HTML
+
+**Vantagens da Opção 4 (Híbrido):**
+📱 Resumo visível imediatamente no Telegram
+🎨 Dashboard completo para análise detalhada
+⚡ Não precisa baixar HTML para decisão rápida
+📎 HTML disponível para análise profunda
+🏆 Melhor de ambos os mundos!

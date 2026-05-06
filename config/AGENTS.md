@@ -271,24 +271,84 @@ Limites de risco:
 3. Apresente no formato dashboard estruturado
 
 ### COMANDO: estruturas TICKER ou estratégias TICKER ou opções TICKER
-🚨 **OBRIGATÓRIO: GERAR DASHBOARD VISUAL HTML!!!**
-1. Validar dados: `python3 pre_analysis_validator.py TICKER`
-2. Calcular estratégias (Black-Scholes, Greeks, IV/HV)
-3. Criar JSON com estratégias (ver formato em TOOLS.md)
-4. Gerar dashboard: `python3 options_strategies_dashboard.py TICKER SPOT strategies.json`
-5. **APRESENTAR HTML AO USUÁRIO** (NÃO texto simples!)
+🚨 **OBRIGATÓRIO: WORKFLOW HÍBRIDO (OPÇÃO 4)!!!**
+
+**PASSO 1: Validar dados**
+```bash
+python3 /root/.zeroclaw/workspace/pre_analysis_validator.py TICKER
+```
+
+**PASSO 2: Calcular estratégias**
+- Black-Scholes, Greeks, IV/HV
+- Selecionar baseado em: IV, tendência, suporte/resistência, term structure
+
+**PASSO 3: Criar JSON com estratégias**
+```bash
+cat > /tmp/TICKER_strategies.json << 'EOF'
+{
+  "ticker": "TICKER",
+  "spot": PRICE,
+  "iv_atm": IV,
+  "dte": DAYS,
+  "strategies": [...]
+}
+EOF
+```
+
+**PASSO 4: Gerar dashboard HTML**
+```bash
+python3 /root/.zeroclaw/workspace/options_strategies_dashboard.py \
+  TICKER SPOT /tmp/TICKER_strategies.json
+```
+
+**PASSO 5: Gerar resumo Telegram**
+```bash
+python3 /root/.zeroclaw/workspace/telegram_summary_generator.py \
+  /tmp/TICKER_strategies.json
+```
+
+**PASSO 6: APRESENTAR AO USUÁRIO**
+📱 **Enviar no Telegram:**
+1. **Mensagem:** conteúdo do arquivo `_telegram.md` (resumo top 3)
+2. **Anexo:** arquivo `.html` (dashboard completo)
+
+**Formato da mensagem:**
+```
+🎮 TICKER Options Dashboard
+
+💰 Spot: $XX.XX
+📊 IV ATM: XX%
+⏳ DTE: XX dias
+
+---
+
+🎯 TOP 3 ESTRATÉGIAS:
+
+*1. 🐂 Nome* ⭐ TOP PICK
+_Descrição_
+• Custo: $X.XX
+• Lucro Máx: $X.XX
+• RR: X:1
+💡 Insight...
+
+---
+
+📎 Dashboard completo anexado!
+🌐 Abra o HTML para ver todas as estratégias
+```
 
 **❌ NUNCA MAIS:**
-- Enviar lista de estratégias em texto simples
-- Usar tabelas/bullets para estruturas
-- Formato antigo de análise
+- Enviar APENAS texto simples
+- Enviar APENAS HTML sem resumo
+- Pular validação de dados
+- Usar formato antigo
 
 **✅ SEMPRE:**
-- Dashboard HTML visual com cards
-- Badges coloridos (TOP PICK, ALTA, DEFENSIVO, etc)
-- Métricas em grid 2x2
-- Legs verde/vermelho
-- HTML responsivo dark-theme
+- Workflow completo (6 passos)
+- Resumo Markdown + HTML anexado
+- Top 3 estratégias visíveis
+- HTML disponível para detalhes
+- Validar dados ANTES
 
 ### COMANDO: macro
 Informe: Selic atual, USD/BRL, Ibovespa, IVOL-BR, CDS Brasil
