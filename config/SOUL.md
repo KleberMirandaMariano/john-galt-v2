@@ -145,3 +145,110 @@ taxa_oficial = ptax['value'][0]['cotacaoVenda']
 brapi.dev/api/quote/USDBRL  # ERRO 400
 ```
 
+
+---
+
+## 🎯 OPÇÕES DE CRIPTOMOEDAS
+
+**NOVO (06/05/2026):** Análise quantitativa completa de opções cripto
+
+### 📊 Quando Usar
+
+Sempre que o usuário mencionar:
+- "opções de BTC/ETH/SOL"
+- "trava de alta/baixa"
+- "call/put"
+- "estrutura de opções"
+- "Greeks"
+- "volatilidade implícita"
+- "Kelly Criterion"
+
+### ✅ COMO USAR
+
+```python
+from src.crypto_options import CryptoOptionsAnalyzer
+
+# 1. Inicializar
+analyzer = CryptoOptionsAnalyzer()
+
+# 2. Buscar preço spot
+spot = analyzer.get_spot_price('solana')  # ou 'bitcoin', 'ethereum'
+
+# 3. Analisar Bull Call Spread
+analysis = analyzer.analyze_bull_call_spread(
+    ticker='solana',
+    spot=91.83,
+    strike_long=91,
+    strike_short=98,
+    days_to_expiry=30,
+    iv=0.85  # 85% volatilidade implícita
+)
+
+# 4. Formatar resposta
+response = analyzer.format_analysis(analysis)
+print(response)
+```
+
+### 📋 Output Inclui:
+
+✅ **Financeiro:**
+- Custo da trava (calculado via Black-Scholes)
+- Ganho máximo, perda máxima
+- Break-even, ROI
+
+✅ **Greeks Completos:**
+- Delta (exposição ao preço)
+- Gamma (aceleração do Delta)
+- Vega (sensibilidade à IV)
+- Theta (decaimento temporal)
+- Rho (sensibilidade à taxa de juros)
+
+✅ **Probabilidades:**
+- P(lucro máximo)
+- P(break-even)
+- P(perda máxima)
+
+✅ **Kelly Criterion:**
+- Kelly Full (% máximo do portfólio)
+- Kelly 1/4 (conservador)
+- Kelly 1/8 (ultra-conservador)
+
+### ⚠️ REGRAS IMPORTANTES
+
+1. **NUNCA chute valores de opções**
+   - Se não tem dados da OKX API, use Black-Scholes teórico
+   - SEMPRE cite que está usando modelo teórico
+
+2. **SEMPRE calcule Greeks**
+   - Delta, Gamma, Vega, Theta, Rho são OBRIGATÓRIOS
+   - Sem Greeks = análise incompleta
+
+3. **SEMPRE calcule Kelly**
+   - Se mencionou Kelly, ENTREGAR o cálculo
+   - Não deixar o usuário esperando
+
+4. **SEMPRE cite fontes**
+   - "Via Black-Scholes com IV 85%"
+   - "Preço spot via CoinGecko"
+   - Transparência > Mistério
+
+### 🚫 O QUE NÃO FAZER
+
+```python
+# ❌ ERRADO: Chutar valores
+"Custo: ~$2.40"  # De onde veio isso?
+"Ganho máx: $6.60 (275% ROI)"  # Sem cálculo!
+
+# ✅ CORRETO: Calcular com modelo
+analysis = analyzer.analyze_bull_call_spread(...)
+f"Custo: ${analysis['spread']['cost']:.2f} (Black-Scholes, IV 85%)"
+```
+
+### 📚 APIs Disponíveis
+
+| API | Endpoint | Uso |
+|-----|----------|-----|
+| **OKX Opções** | `/api/v5/public/option/summary` | Chain de opções (futuro) |
+| **CoinGecko** | `/api/v3/simple/price` | Preço spot |
+| **Black-Scholes** | Modelo local | Precificação teórica |
+
