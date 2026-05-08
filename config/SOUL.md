@@ -122,11 +122,15 @@ Calcule:
 ### 📋 Exemplo de Uso:
 
 ```python
-# Buscar USD/BRL via AwesomeAPI
-usd_brl = web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
-taxa = float(usd_brl['USDBRL']['bid'])
+# ✅ RECOMENDADO: Buscar USD/BRL via BCB SGS (Série 1 - PTAX)
+usd_brl = web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/1?formato=json")
+taxa = float(usd_brl[0]['valor'])
 
-# Ou BCB (oficial)
+# Alternativa: AwesomeAPI (pode ter rate limit 429)
+usd_brl_awesome = web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
+taxa_awesome = float(usd_brl_awesome['USDBRL']['bid'])
+
+# Alternativa: BCB OData (oficial, mais complexo)
 from datetime import datetime
 data = datetime.now().strftime('%m-%d-%Y')
 bcb_url = f"https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='{data}'&$format=json"
