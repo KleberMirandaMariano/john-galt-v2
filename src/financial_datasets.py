@@ -30,7 +30,7 @@ class FinancialDatasetsAPI:
     - Análise comparativa
     """
     
-    BASE_URL = "https://api.financialdatasets.ai/v1"
+    BASE_URL = "https://api.financialdatasets.ai"
     
     def __init__(self, api_key: Optional[str] = None):
         """
@@ -66,11 +66,12 @@ class FinancialDatasetsAPI:
             Dict com preço e dados básicos
         """
         try:
-            url = f"{self.BASE_URL}/stocks/{ticker}/price"
-            resp = self.session.get(url, timeout=10)
+            url = f"{self.BASE_URL}/prices/snapshot/"
+            params = {"ticker": ticker}
+            resp = self.session.get(url, params=params, timeout=10)
             
             if resp.status_code == 200:
-                return resp.json()
+                return resp.json().get("snapshot", {})
             else:
                 print(f"⚠️ Erro ao buscar preço de {ticker}: {resp.status_code}")
                 return None
@@ -90,29 +91,31 @@ class FinancialDatasetsAPI:
             Dict com P/E, P/B, ROE, Debt/Equity, Dividend Yield, etc
         """
         try:
-            url = f"{self.BASE_URL}/stocks/{ticker}/fundamentals"
-            resp = self.session.get(url, timeout=10)
+            # API endpoint correto
+            url = f"{self.BASE_URL}/financial-metrics/snapshot/"
+            params = {"ticker": ticker}
+            resp = self.session.get(url, params=params, timeout=10)
             
             if resp.status_code == 200:
-                data = resp.json()
+                data = resp.json().get("snapshot", {})
                 
-                # Formatar métricas
+                # Mapear campos da API para formato interno
                 return {
                     "ticker": ticker,
-                    "pe_ratio": data.get("pe_ratio"),
-                    "pb_ratio": data.get("pb_ratio"),
-                    "ps_ratio": data.get("ps_ratio"),
-                    "roe": data.get("roe"),
-                    "roa": data.get("roa"),
+                    "pe_ratio": data.get("price_to_earnings_ratio"),
+                    "pb_ratio": data.get("price_to_book_ratio"),
+                    "ps_ratio": data.get("price_to_sales_ratio"),
+                    "roe": data.get("return_on_equity"),
+                    "roa": data.get("return_on_assets"),
                     "debt_to_equity": data.get("debt_to_equity"),
                     "current_ratio": data.get("current_ratio"),
-                    "dividend_yield": data.get("dividend_yield"),
+                    "dividend_yield": None,  # TODO: buscar de outro endpoint
                     "market_cap": data.get("market_cap"),
                     "enterprise_value": data.get("enterprise_value"),
-                    "ebitda_margin": data.get("ebitda_margin"),
+                    "ebitda_margin": None,  # Calcular: EV/EBITDA disponível
                     "net_margin": data.get("net_margin"),
-                    "revenue_growth": data.get("revenue_growth_yoy"),
-                    "earnings_growth": data.get("earnings_growth_yoy")
+                    "revenue_growth": data.get("revenue_growth"),
+                    "earnings_growth": data.get("earnings_growth")
                 }
             else:
                 print(f"⚠️ Erro ao buscar fundamentalistas de {ticker}: {resp.status_code}")
