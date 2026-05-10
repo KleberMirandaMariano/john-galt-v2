@@ -3,31 +3,39 @@
 ## Quando usar
 Quando o usuário pedir macro, panorama econômico, Selic, câmbio, ou quando for incluir dados macro em análises.
 
-## Dados disponíveis via API (sem autenticação)
+## Dados disponíveis via web_fetch (sem autenticação)
 
 ### USD/BRL e Ibovespa via BRAPI
-shell: curl -s "https://brapi.dev/api/quote/USDBRL,^BVSP?token=tP2QrzuthuXx4JjrnBqnkd" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)['results']
-for item in d:
-    print(f\"{item['symbol']}: {item.get('regularMarketPrice','N/A')} ({item.get('regularMarketChangePercent',0):.2f}%)\")
-"
+```
+web_fetch("https://brapi.dev/api/quote/USDBRL,^BVSP?token=tP2QrzuthuXx4JjrnBqnkd")
+→ results[0].regularMarketPrice        # preço atual
+→ results[0].regularMarketChangePercent # variação %
+```
 
 ### Selic via API BCB
-shell: curl -s "https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)[0]
-print(f\"Selic: {d['valor']}% a.a. (ref: {d['data']})\")
-"
+```
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json")
+→ [0]['valor']  # taxa Selic em % a.a.
+→ [0]['data']   # data de referência
+```
 
-### CDS Brasil 5Y (via Yahoo Finance proxy)
-shell: curl -s "https://brapi.dev/api/quote/BRLUSD=X?token=tP2QrzuthuXx4JjrnBqnkd" | python3 -c "
-import json,sys
-d=json.load(sys.stdin)['results'][0]
-print(f\"BRL/USD: {d.get('regularMarketPrice','N/A')}\")
-"
+### Câmbio BRL/USD
+```
+web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
+→ USDBRL.bid    # cotação de compra
+→ USDBRL.pctChange # variação %
+```
+
+## Formato de resposta esperado
+```
+🇧🇷 MACRO BRASIL — [DATA]
+
+💰 USD/BRL: R$ X.XX (+X.XX%)
+📈 Ibovespa: XXX.XXX pts (+X.XX%)
+🏦 Selic: XX.XX% a.a. (ref: DD/MM/AAAA)
+```
 
 ## REGRA CRÍTICA
-Execute os curls acima antes de mencionar qualquer dado macro.
+Execute os web_fetch acima antes de mencionar qualquer dado macro.
 Se uma API falhar, indique: "Dado indisponível — consulte [fonte]."
 NUNCA estime Selic, câmbio ou CDS sem fonte verificável.
