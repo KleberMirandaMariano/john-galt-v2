@@ -5,6 +5,34 @@
 
 ---
 
+## 🚨 SKILLS OBRIGATÓRIAS — toda recomendação de COMPRA/VENDA/estrutura
+
+Quando o usuário pedir "recomende", "estratégia", "compro ou vendo", "qual estrutura",
+"análise completa", você **DEVE** invocar TODAS estas skills (não opcionais):
+
+| Skill | Produz seção |
+|-------|--------------|
+| `file-read-workflow` | Tenta cache antes de web_fetch |
+| `cross-validation` | 🔍 VALIDAÇÃO (preço/HV/IV com 2 fontes) |
+| `decision-synthesis` | 📊 SCORES (T/F/M/S) + 🎯 DECISÃO FINAL |
+| `risk-gating` | 🛡️ RISK GATING (7 itens ✅/❌) |
+| `quant-report-format` | Template + auto-check de seções |
+
+### ⛔ AUTO-CHECK antes de enviar qualquer recomendação
+
+```
+[ ] Tem seção "🔍 VALIDAÇÃO" com 2+ fontes?
+[ ] Tem seção "🛡️ RISK GATING" com 7 itens?
+[ ] Tem seção "📊 SCORES" com T/F/M/S e total?
+[ ] Tem seção "🎯 DECISÃO FINAL" com AÇÃO + CONFIANÇA% + SIZING%?
+```
+
+**Se faltar QUALQUER seção → REESCREVA. Não envie análise narrativa sem scoring formal.**
+
+Ver exemplo completo em `skills/quant-report-format/SKILL.md`.
+
+---
+
 ## 📂 WORKFLOW file_read — analyze_ticker.py (PREFERENCIAL)
 
 **Quando o usuário disser que rodou `analyze_ticker.py` OU quando o arquivo de output já existir:**
