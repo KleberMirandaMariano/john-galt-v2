@@ -21,8 +21,8 @@ import json
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.financial_datasets import FinancialDatasetsAPI
-from src.fundamental_analysis_skill import FundamentalAnalysisSkill
+from financial_datasets import FinancialDatasetsAPI
+from fundamental_analysis_skill import FundamentalAnalysisSkill
 
 
 # ============================================================================

@@ -16,9 +16,9 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.financial_datasets import FinancialDatasetsAPI
-from src.fundamental_analysis_skill import FundamentalAnalysisSkill
-from src.stock_comparison_dashboard import StockComparisonDashboard
+from financial_datasets import FinancialDatasetsAPI
+from fundamental_analysis_skill import FundamentalAnalysisSkill
+from stock_comparison_dashboard import StockComparisonDashboard
 
 
 def test_api_wrapper():
@@ -167,7 +167,7 @@ def test_phase_integration():
     print("Testing Phase 2 (Memory) integration...")
     try:
         from src.enhanced_memory import EnhancedMemory
-        from src.financial_datasets import integrate_with_memory
+        from financial_datasets import integrate_with_memory
         
         memory = EnhancedMemory()
         api = FinancialDatasetsAPI()
@@ -181,7 +181,7 @@ def test_phase_integration():
     print("\nTesting Phase 3 (Skills) integration...")
     try:
         from src.skill_library import SkillLibrary
-        from src.financial_datasets import integrate_with_skills
+        from financial_datasets import integrate_with_skills
         
         library = SkillLibrary()
         api = FinancialDatasetsAPI()
@@ -198,7 +198,7 @@ def test_phase_integration():
     print("\nTesting Phase 4 (Learning) integration...")
     try:
         from src.autonomous_learning import AutonomousLearning
-        from src.financial_datasets import integrate_with_learning
+        from financial_datasets import integrate_with_learning
         
         learning = AutonomousLearning()
         api = FinancialDatasetsAPI()

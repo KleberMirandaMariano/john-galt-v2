@@ -10,7 +10,7 @@ Data: 08/05/2026
 """
 
 from typing import Dict, List, Optional
-from src.financial_datasets import FinancialDatasetsAPI
+from financial_datasets import FinancialDatasetsAPI
 import statistics
 
 

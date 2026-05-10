@@ -13,9 +13,9 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.financial_datasets import FinancialDatasetsAPI
-from src.fundamental_analysis_skill import FundamentalAnalysisSkill
-from src.stock_comparison_dashboard import StockComparisonDashboard
+from financial_datasets import FinancialDatasetsAPI
+from fundamental_analysis_skill import FundamentalAnalysisSkill
+from stock_comparison_dashboard import StockComparisonDashboard
 
 
 def exemplo_1_analise_cogn3():
@@ -189,7 +189,7 @@ def exemplo_4_telegram_integration():
     print("Implementação no bot Telegram:")
     print()
     print("```python")
-    print("from src.fundamental_analysis_skill import FundamentalAnalysisSkill")
+    print("from fundamental_analysis_skill import FundamentalAnalysisSkill")
     print()
     print("skill = FundamentalAnalysisSkill()")
     print()

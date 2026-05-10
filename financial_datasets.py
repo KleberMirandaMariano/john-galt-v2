@@ -444,7 +444,7 @@ def integrate_with_skills(api: FinancialDatasetsAPI, library):
     code = '''
 def analyze_fundamentals(ticker):
     """Análise fundamentalista completa"""
-    from src.financial_datasets import FinancialDatasetsAPI
+    from financial_datasets import FinancialDatasetsAPI
     
     api = FinancialDatasetsAPI()
     fund = api.get_fundamentals(ticker)

@@ -10,8 +10,8 @@ Data: 08/05/2026
 """
 
 from typing import List, Dict
-from src.financial_datasets import FinancialDatasetsAPI
-from src.fundamental_analysis_skill import FundamentalAnalysisSkill
+from financial_datasets import FinancialDatasetsAPI
+from fundamental_analysis_skill import FundamentalAnalysisSkill
 import json
 
 
