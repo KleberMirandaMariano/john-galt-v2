@@ -1,0 +1,24 @@
+# John Galt v2 - Dependências Python
+# Instalar com: pip install -r requirements.txt
+
+# === Core científico ===
+numpy>=1.26.0
+pandas>=2.0.0
+scipy>=1.11.0
+
+# === Mercado financeiro ===
+yfinance>=0.2.40
+
+# === HTTP / APIs ===
+requests>=2.31.0
+aiohttp>=3.9.0
+httpx>=0.27.0
+
+# === IA - Anthropic SDK (preferido) ===
+anthropic>=0.25.0
+
+# === AWS (para agent_swarm_v2_0_bedrock.py) ===
+boto3>=1.34.0
+
+# === Utilitários ===
+python-dotenv>=1.0.0

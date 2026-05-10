@@ -6,11 +6,14 @@ Exemplo: python3 validate_strategy_backtest.py PETR4 365
 """
 
 import sys
+import os
 import json
 from datetime import datetime, timedelta
 import yfinance as yf
 import pandas as pd
-sys.path.insert(0, '/root/.zeroclaw/b3_trading_signals')
+
+# Usa o pacote local b3_trading_signals incluído no repositório
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'b3_trading_signals'))
 
 from core.indicator import Indicator
 from core.backtester import Backtester
@@ -91,7 +94,7 @@ def main():
         df_with_ind = indicator.setup_indicator(df.copy())
         
         # Rodar backtest
-        config_file = "/root/.zeroclaw/workspace/config.json"
+        config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
         backtester = Backtester(df_with_ind, file_config=config_file)
         try:
             df_result = backtester.run_strategy(strategy)
