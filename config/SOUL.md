@@ -86,7 +86,13 @@ Interpretação:
 
 ---
 
-### 5. Câmbio USD/BRL
+### 5. Câmbio USD/BRL — BCB (primário)
+```
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/1?formato=json")
+```
+Retorna: `[0].valor` (string → converter para float)
+
+Fallback se BCB falhar:
 ```
 web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
 ```
