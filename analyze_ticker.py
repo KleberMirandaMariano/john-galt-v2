@@ -4,11 +4,11 @@ analyze_ticker.py — Análise quantitativa completa via APIs públicas
 Salva output em /root/.zeroclaw/workspace/{ticker}_output.txt
 John Galt lê o arquivo com file_read após execução.
 
-Uso:
-  python3 analyze_ticker.py COGN3
-  python3 analyze_ticker.py PETR4
-  python3 analyze_ticker.py SOL
-  python3 analyze_ticker.py BTC
+Uso (na VPS, o repo fica em /root/.zeroclaw/workspace/):
+  python3 /root/.zeroclaw/workspace/analyze_ticker.py COGN3
+  python3 /root/.zeroclaw/workspace/analyze_ticker.py PETR4
+  python3 /root/.zeroclaw/workspace/analyze_ticker.py SOL
+  python3 /root/.zeroclaw/workspace/analyze_ticker.py BTC
 """
 
 import sys

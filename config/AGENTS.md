@@ -11,7 +11,7 @@
 
 ```
 # O usuário rodou manualmente:
-# python3 /root/.zeroclaw/workspace/john-galt-v2/analyze_ticker.py COGN3
+# python3 /root/.zeroclaw/workspace/analyze_ticker.py COGN3
 
 # Você lê o resultado com:
 file_read /root/.zeroclaw/workspace/cogn3_output.txt
