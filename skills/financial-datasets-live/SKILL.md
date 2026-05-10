@@ -1,102 +1,57 @@
-# Financial Datasets — Análise Fundamentalista Global
+---
+name: financial-datasets-live
+description: >
+  Análise fundamentalista NYSE/NASDAQ via Financial Datasets API (sem auth). Disparar com
+  ticker NYSE/NASDAQ (AAPL, MSFT, NVDA, GOOGL, etc) ou ADR brasileiro (VALE, PBR, ITUB, BBD).
+  NÃO usar para B3 nativa — B3 retorna 400; para PETR4/COGN3 usar BRAPI.
+---
 
-## Quando usar
-Análise fundamentalista de ações NYSE/NASDAQ: AAPL, MSFT, NVDA, GOOGL, META, XOM, etc.
-NÃO usar para B3 — B3 retorna 400. Para COGN3, PETR4 → usar BRAPI.
+# Financial Datasets — NYSE/NASDAQ + ADRs
 
-## ✅ COMO BUSCAR — User-Agent obrigatório
+## Endpoints
 
-### 1. Múltiplos e Fundamentalistas
 ```
+# Múltiplos e fundamentalistas
 web_fetch(
   url="https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL",
   headers={"User-Agent": "Mozilla/5.0"}
 )
-```
 
-Campos em `snapshot`:
-- `price_to_earnings_ratio` → P/L
-- `price_to_book_ratio`     → P/VP
-- `return_on_equity`        → ROE (×100 = %)
-- `return_on_assets`        → ROA (×100 = %)
-- `net_margin`              → Margem Líquida (×100 = %)
-- `gross_margin`            → Margem Bruta (×100 = %)
-- `operating_margin`        → Margem Operacional (×100 = %)
-- `debt_to_equity`          → Dívida/PL
-- `current_ratio`           → Liquidez Corrente
-- `revenue_growth`          → Crescimento Receita (×100 = %)
-- `dividend_yield`          → Dividend Yield (×100 = %)
-
-### 2. Preço Atual
-```
+# Preço atual
 web_fetch(
   url="https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL",
   headers={"User-Agent": "Mozilla/5.0"}
 )
 ```
 
-Campos em `snapshot`:
-- `price`              → Preço atual USD
-- `day_change_percent` → Variação %
+## Campos `snapshot.*`
+- `price_to_earnings_ratio` → P/L
+- `price_to_book_ratio` → P/VP
+- `return_on_equity` → ROE (×100 = %)
+- `return_on_assets` → ROA (×100 = %)
+- `net_margin`, `gross_margin`, `operating_margin` (×100 = %)
+- `debt_to_equity`, `current_ratio`
+- `revenue_growth` (×100 = %)
+- `dividend_yield` (×100 = %)
+- `price`, `day_change_percent`
 
-## 📊 Scoring Inline (calcular sem Python)
+## Scoring inline (0-10)
 
-**Value Score:**
-- P/L:  <10→10 | 10-15→8 | 15-25→6 | 25-40→4 | >40→2
-- P/VP: <1.5→10 | 1.5-3→7 | 3-6→4 | >6→2
-- Value = média(P/L pts, P/VP pts)
+**Value:** P/L (<10→10, 15-25→6, >40→2) + P/VP (<1.5→10, 3-6→4, >6→2) → média
+**Quality:** ROE (>25%→10, 15-25%→8, <10%→4) + Margem líquida + ROA → média
+**Growth:** revenue_growth (>20%→10, 10-20%→7, 0-10%→5, <0→2)
+**Risk:** debt_to_equity (<0.5→10, 0.5-1→7, 1-2→5, >2→2)
 
-**Quality Score:**
-- ROE×100:    >25%→10 | 15-25%→8 | 10-15%→6 | <10%→4
-- Margem×100: >20%→10 | 10-20%→7 | 5-10%→5 | <5%→3
-- Quality = média(ROE pts, Margem pts)
+**Score final:** 0.30·Value + 0.30·Quality + 0.20·Growth + 0.20·Risk
 
-**Growth Score:**
-- revenue_growth×100: >20%→10 | 10-20%→7 | 5-10%→5 | 0-5%→3 | <0%→1
+## ADRs brasileiros disponíveis
+- VALE (Vale)
+- PBR (Petrobras)
+- ITUB (Itaú)
+- BBD (Bradesco)
+- ABEV (Ambev)
 
-**Risk Score:**
-- debt_to_equity: <0.5→10 | 0.5-1→7 | 1-2→5 | >2→3
-- current_ratio:  >2→10 | 1.5-2→7 | 1-1.5→5 | <1→2
-- Risk = média(D/E pts, CR pts)
-
-**FINAL = Value×0.30 + Quality×0.30 + Growth×0.25 + Risk×0.15**
-
-| Score | Recomendação | Confiança |
-|-------|-------------|-----------|
-| ≥7.5  | STRONG BUY  | 90% |
-| ≥6.5  | BUY         | 75% |
-| ≥5.5  | HOLD        | 60% |
-| ≥4.0  | SELL        | 70% |
-| <4.0  | STRONG SELL | 85% |
-
-## Formato de Output
-```
-📊 ANÁLISE FUNDAMENTALISTA — {TICKER}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 PREÇO
-
-${price:.2f} ({change:+.2f}%)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📈 MÚLTIPLOS
-
-P/L:         {pe:.1f}x
-P/VP:        {pb:.1f}x
-ROE:         {roe:.1f}%
-Marg. Líq:  {margin:.1f}%
-Dívida/PL:  {de:.2f}
-Rev. Growth: {growth:+.1f}%
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 SCORES (0-10)
-
-Value:    {v:.1f} {emoji}
-Quality:  {q:.1f} {emoji}
-Growth:   {g:.1f} {emoji}
-Risk:     {r:.1f} {emoji}
-FINAL:    {final:.1f} ⭐
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 {action} ({confidence}% confiança)
-Fonte: Financial Datasets API
-```
+## Regra crítica
+- B3 nativa (PETR4, COGN3, etc) → BRAPI, NÃO essa API
+- Sempre incluir `User-Agent` no header
+- Para análise completa, preferir `daily_report.py` + `file_read`
