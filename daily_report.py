@@ -18,8 +18,8 @@ from datetime import datetime
 from pathlib import Path
 import json
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# financial_datasets.py e fundamental_analysis_skill.py estão na mesma pasta
+sys.path.insert(0, str(Path(__file__).parent))
 
 from financial_datasets import FinancialDatasetsAPI
 from fundamental_analysis_skill import FundamentalAnalysisSkill
@@ -29,19 +29,25 @@ from fundamental_analysis_skill import FundamentalAnalysisSkill
 # CONFIGURATION
 # ============================================================================
 
-B3_TICKERS = [
-    "PETR4.SA",  # Petrobras
-    "VALE3.SA",  # Vale
-    "ITUB4.SA",  # Itaú
-    "BBDC4.SA",  # Bradesco
-    "COGN3.SA",  # Cogna
-    "GMAT3.SA",  # Grupo Mateus
+# Financial Datasets API só suporta NYSE/NASDAQ — B3 não é suportada
+# Usando ações globais com liquidez para demonstração do scoring
+GLOBAL_TICKERS = [
+    "VALE",   # Vale ADR (NYSE)
+    "PBR",    # Petrobras ADR (NYSE)
+    "ITUB",   # Itaú ADR (NYSE)
+    "BBD",    # Bradesco ADR (NYSE)
+    "AAPL",   # Apple
+    "MSFT",   # Microsoft
 ]
+
+# Para análise B3 via BRAPI, usar analyze_ticker.py separadamente
+B3_TICKERS_BRAPI = ["PETR4", "VALE3", "ITUB4", "BBDC4", "COGN3", "GMAT3"]
 
 CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL"]
 
-OUTPUT_DIR = Path("/tmp/daily_reports")
-OUTPUT_DIR.mkdir(exist_ok=True)
+# Output acessível via file_read pelo John Galt
+OUTPUT_DIR = Path("/root/.zeroclaw/workspace")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ============================================================================
@@ -63,14 +69,16 @@ def get_fundamentals_section() -> str:
     lines.append("")
     lines.append(f"**Data:** {datetime.now().strftime('%d/%m/%Y %H:%M')}")
     lines.append("")
-    
-    # Analisar cada ticker B3
+    lines.append("*Nota: Financial Datasets API suporta apenas NYSE/NASDAQ. Para B3, use `analyze_ticker.py`.*")
+    lines.append("")
+
+    # Analisar tickers via Financial Datasets
     analyses = []
     
-    for ticker in B3_TICKERS:
+    for ticker in GLOBAL_TICKERS:
         try:
             analysis = skill.analyze(ticker)
-            
+
             if "error" not in analysis:
                 analyses.append(analysis)
         except Exception as e:
@@ -167,10 +175,10 @@ def get_value_opportunities() -> str:
     # Analisar tickers
     undervalued = []
     
-    for ticker in B3_TICKERS:
+    for ticker in GLOBAL_TICKERS:
         try:
             analysis = skill.analyze(ticker)
-            
+
             if "error" not in analysis:
                 # Value score >= 7.0 = undervalued
                 if analysis['scores']['value'] >= 7.0:
@@ -240,10 +248,10 @@ def get_quality_leaders() -> str:
     # Analisar tickers
     quality_leaders = []
     
-    for ticker in B3_TICKERS:
+    for ticker in GLOBAL_TICKERS:
         try:
             analysis = skill.analyze(ticker)
-            
+
             if "error" not in analysis:
                 # Quality score >= 7.0
                 if analysis['scores']['quality'] >= 7.0:
@@ -329,9 +337,10 @@ def generate_daily_report() -> str:
 **Data:** {timestamp}
 
 **Cobertura:**
-- Ações B3: {len(B3_TICKERS)} tickers
+- ADRs B3 + Globais (NYSE/NASDAQ): {len(GLOBAL_TICKERS)} tickers
 - Análise Fundamentalista: Financial Datasets API
 - Scoring System: Value/Quality/Growth/Risk
+- B3 direto: use `analyze_ticker.py TICKER` + `file_read`
 
 ---
 
@@ -381,6 +390,7 @@ def save_report(report: str, output_path: Path = None) -> Path:
     if output_path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         output_path = OUTPUT_DIR / f"daily_report_{timestamp}.md"
+        # John Galt lê com: file_read /root/.zeroclaw/workspace/daily_report_{timestamp}.md
     
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(report)
