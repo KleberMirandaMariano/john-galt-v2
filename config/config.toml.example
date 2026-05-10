@@ -137,7 +137,9 @@ parallel_tools = false
 tool_dispatcher = "auto"
 
 [skills]
-open_skills_enabled = false
+# Habilitar skills da pasta skills/ — necessário para decision-synthesis,
+# risk-gating, cross-validation e demais skills auto-disparáveis funcionarem.
+open_skills_enabled = true
 prompt_injection_mode = "full"
 
 [[model_routes]]

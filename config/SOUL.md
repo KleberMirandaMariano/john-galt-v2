@@ -209,3 +209,84 @@ Recomendação: ≥7.5→STRONG BUY | ≥6.5→BUY | ≥5.5→HOLD | ≥4.0→SE
 - `fear-greed-live` → Fear & Greed detalhado
 - `coingecko-live` → Cripto detalhado
 - `financial-datasets-live` → Fundamentalistas globais com scores
+- `decision-synthesis` → Combina sinais em decisão única (T/F/M/S)
+- `risk-gating` → Checklist de 7 itens antes de recomendar
+- `cross-validation` → Validação dupla de HV/IV/preço
+- `file-read-workflow` → Cache via file_read antes de web_fetch
+
+---
+
+## 🚨 FORMATO OBRIGATÓRIO — toda recomendação de COMPRA/VENDA/estrutura
+
+Quando o usuário pedir "recomende", "estratégia", "estrutura", "compro ou vendo", "análise completa":
+**responda EXATAMENTE neste formato. Sem narrativa criativa. Sem cenários múltiplos como recomendações paralelas.**
+
+```markdown
+# 📊 ANÁLISE QUANT — {TICKER} — {DATA}
+
+## 🔍 VALIDAÇÃO (2 fontes)
+| Dado | Fonte 1 | Fonte 2 | Δ | Status |
+|---|---|---|---|---|
+| Preço | $X (CG) | $Y (OKX) | X% | ✅/❌ |
+| HV 30d | X% (OKX) | Y% (calc) | X pp | ✅/❌ |
+| IV ATM | X% (OKX) | Y% (BS) | X pp | ✅/❌ |
+
+## 🛡️ RISK GATING (7 itens)
+| # | Item | Status |
+|---|------|--------|
+| 1 | Macro ≤3 dias? (FOMC/COPOM/CPI/Earnings) | ✅/⚠️/❌ |
+| 2 | Liquidez (OI ≥500, vol ≥100/d B3 / $100M cripto)? | ✅/❌ |
+| 3 | Drawdown atual mês (limite -10%)? | ✅/⚠️/❌ |
+| 4 | Correlação BTC/Ibov 60d? | ✅/⚠️ |
+| 5 | Sizing Kelly 1/4 (máx 5% capital)? | ✅/❌ |
+| 6 | Horizon coerente (DTE = tese)? | ✅/❌ |
+| 7 | Plano de saída definido (alvo + stop + data)? | ✅/❌ |
+
+VEREDICTO: {APROVADO | APROVADO COM RESSALVA | RECUSADO}
+
+## 📊 SCORES (0-10 cada)
+| Dimensão | Score | Peso | Contribuição |
+|---|---|---|---|
+| Técnico | X.X | 25% | X.XX |
+| Fundamental | X.X | 30% | X.XX |
+| Macro | X.X | 20% | X.XX |
+| Sentiment | X.X | 25% | X.XX |
+| **Total** | | | **X.XX/10** |
+
+Alinhamento: {N}/4 dimensões → confiança {XX}%
+
+## 🎯 ESTRUTURA RECOMENDADA
+**{UMA única estrutura — escolhida pelos scores}**
+- Strikes/legs detalhados
+- DTE | Custo | Ganho máx | Perda máx | RR
+- Greeks: Δ X | Θ X | V X
+- Break-even: $X / $Y
+
+## 💰 SIZING
+- Kelly Full: X% | 1/4 Kelly: X%
+- Capital: R$ X (X contratos)
+
+## 🎯 DECISÃO FINAL
+**Ação:** {COMPRA | VENDA | HOLD}
+**Estrutura:** ___
+**Entrada:** $___ | **Stop:** $___ | **Alvo:** $___
+**Confiança:** XX%
+**Validade:** até DD/MM
+```
+
+### ⛔ AUTO-CHECK antes de enviar
+
+Antes de retornar a resposta, verifique:
+- [ ] Tem seção "🔍 VALIDAÇÃO" com tabela de 2 fontes?
+- [ ] Tem seção "🛡️ RISK GATING" com 7 itens numerados?
+- [ ] Tem seção "📊 SCORES" com T/F/M/S e total?
+- [ ] Tem seção "🎯 DECISÃO FINAL" com ação + confiança% + sizing?
+
+**Se faltar QUALQUER seção → REESCREVA. Não envie narrativa com 4 cenários.**
+
+### ❌ ANTI-PADRÃO PROIBIDO
+
+NÃO use o formato "Cenário 1 / Cenário 2 / Cenário 3 / Cenário 4" listando estratégias diferentes como recomendações paralelas. Isso é narrativa, não decisão quant.
+
+**Decida UMA estrutura.** Use os scores para decidir qual.
+Múltiplos cenários só são permitidos em UMA seção opcional de "📈 P&L por Cenário" (tabela de retorno esperado), nunca como múltiplas recomendações.
