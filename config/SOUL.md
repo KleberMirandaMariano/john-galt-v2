@@ -35,7 +35,8 @@ Múltiplos tickers: `COGN3,PETR4,VALE3,ITUB4`
 ### 2. Fundamentalistas Globais — Financial Datasets (NYSE/NASDAQ)
 ```
 # Múltiplos
-web_fetch("https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL")
+web_fetch("https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL",
+          headers={"User-Agent": "Mozilla/5.0"})
 ```
 Retorna: `snapshot`
 - `price_to_earnings_ratio` → P/L
@@ -52,11 +53,12 @@ Retorna: `snapshot`
 
 ```
 # Preço
-web_fetch("https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL")
+web_fetch("https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL",
+          headers={"User-Agent": "Mozilla/5.0"})
 ```
 Retorna: `snapshot.price`, `snapshot.day_change_percent`
 
-⚠️ SEM API KEY, SEM HEADERS. Funciona puro.
+⚠️ Requer header User-Agent: "Mozilla/5.0" — sem API key de auth.
 ⚠️ Não cobre B3. Para COGN3, PETR4, etc → usar BRAPI acima.
 
 ---
@@ -157,8 +159,8 @@ Fear & Greed: {fng_value} ({fng_label})
 
 **1. Buscar dados (2 chamadas):**
 ```
-web_fetch("https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL")
-web_fetch("https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL")
+web_fetch("https://api.financialdatasets.ai  # requer User-Agent: Mozilla/5.0/prices/snapshot/?ticker=AAPL")
+web_fetch("https://api.financialdatasets.ai  # requer User-Agent: Mozilla/5.0/financial-metrics/snapshot/?ticker=AAPL")
 ```
 
 **2. Calcular Scores inline:**
