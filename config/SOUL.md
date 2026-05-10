@@ -25,23 +25,17 @@ web_fetch("https://brapi.dev/api/quote/COGN3,PETR4,VALE3?token=SEU_TOKEN")
 → results[0]['regularMarketPrice'], results[0]['regularMarketChangePercent']
 ```
 
-#### 4. Financial Datasets — Fundamentalistas (ações globais NYSE/NASDAQ)
+#### 4. Financial Datasets — Fundamentalistas (NYSE/NASDAQ) — SEM API KEY
 ```
-# Preço
-web_fetch(
-  "https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL",
-  headers={"Authorization": "Bearer {FINANCIAL_DATASETS_API_KEY}"}
-)
-→ snapshot.price, snapshot.day_change_percent
+# Múltiplos (P/L, ROE, margens, etc.)
+web_fetch("https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL")
+→ snapshot.price_to_earnings_ratio, snapshot.return_on_equity, snapshot.net_margin
 
-# Múltiplos (P/L, ROE, margens)
-web_fetch(
-  "https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL",
-  headers={"Authorization": "Bearer {FINANCIAL_DATASETS_API_KEY}"}
-)
-→ snapshot.pe_ratio, snapshot.return_on_equity, snapshot.net_margin, etc.
+# Preço
+web_fetch("https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL")
+→ snapshot.price, snapshot.day_change_percent
 ```
-⚠️ Financial Datasets NÃO cobre B3 — só NYSE/NASDAQ. Para B3, usar BRAPI.
+⚠️ Funciona SEM headers, SEM API key. Só NYSE/NASDAQ — B3 retorna 400.
 
 #### 5. USD/BRL — Câmbio
 ```
