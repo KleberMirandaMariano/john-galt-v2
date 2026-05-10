@@ -1,154 +1,90 @@
-# Skill: Análise Quantitativa Formatada (B3 + Cripto)
+---
+name: quant-report-format
+description: >
+  Template padronizado para relatórios quant (B3, cripto, opções). Disparar com: "análise
+  quant", "relatório quantitativo", "formatar análise", ticker + "análise". Garante
+  consistência e seções obrigatórias.
+---
 
-## Nome
-quant-report-format
+# Quant Report Format — Template oficial
 
-## Descrição
-Template padronizado para análises quantitativas de ações B3, opções B3, criptomoedas e estruturas de derivativos. Garante consistência, rastreabilidade e validação em todos os relatórios do John Galt.
-
-## Quando Usar (Triggers)
-Use esta skill **SEMPRE** que John Galt precisar:
-- Formatar análise de ações B3 (COGN3, PETR4, VALE3, ITUB4, PCAR3, GMAT3)
-- Formatar análise de opções B3 (calls, puts, travas, THL, booster)
-- Formatar análise de criptomoedas (BTC, ETH, SOL)
-- Enviar relatório quantitativo ao Telegram
-- Criar página no Notion com análise
-- Validar/corrigir análise prévia
-- Gerar relatório semanal/mensal
-
-**Palavras-chave que disparam:**
-- "análise quant", "relatório quantitativo"
-- "formatar análise", "gerar relatório"
-- "validar COGN3", "corrigir análise"
-- "enviar ao Telegram", "criar página Notion"
-- Qualquer ticker B3 + "análise"
-- "Black-Scholes", "Kelly Criterion", "gregas"
-
-## Template Markdown
+## Template (markdown)
 
 ```markdown
 # 📊 ANÁLISE QUANT — {TICKER} — {DD/MM/YYYY}
 
-**Status:** {Em Análise | Validada | Corrigida | Executada}
-**Risco/Retorno:** {Conservador | Moderado | Agressivo}
-**Recomendação:** {COMPRA | VENDA | HOLD | EVITAR}
+**Status:** {Em Análise | Validada | Executada}
+**Recomendação:** {COMPRA | VENDA | HOLD}
+**Confiança:** XX%
 
 ---
 
-## 🎯 TESE CENTRAL
-
-{1-2 parágrafos explicando a tese de investimento}
-
----
+## 🎯 TESE
+{1-2 parágrafos}
 
 ## 📈 FUNDAMENTALISTA
-
 | Métrica | Valor | Status |
-|---------|-------|--------|
-| Preço Atual | R$ X,XX | {Subvalorizado/Justo/Caro} |
-| P/L | X,XX | {<15=Atrativo/>20=Caro} |
-| P/VP | X,XX | {<1=Barato/>2=Caro} |
-| Dividend Yield | X,X% | {>5%=Alto/<2%=Baixo} |
-| ROE | X,X% | {>15%=Bom/<10%=Ruim} |
-| Upside Graham | XX% | Alvo: R$ X,XX |
-
----
+|---|---|---|
+| Preço | R$ X,XX | - |
+| P/L | X,X | <15 atrativo |
+| P/VP | X,X | <1.5 atrativo |
+| ROE | X,X% | >15% bom |
+| DY | X,X% | >5% alto |
+| Graham | R$ X,XX | upside +X% |
 
 ## 📊 ESTATÍSTICO
-
 | Métrica | Valor | Interpretação |
-|---------|-------|---------------|
-| Variação 24h | +X,XX% | {Recuperação/Queda} |
-| Z-Score | -X,X | {<-1=Deprimido/>+1=Sobrecomprado} |
-| HV | XX% | {<20%=Baixa/>40%=Alta} |
-| IV | XX% | {Barata/Justa/Cara} |
-| IV/HV | X,XX | {<1.0=Barata/>1.2=Cara} |
+|---|---|---|
+| Z-Score | X,X | <-1 deprimido |
+| HV 30d | XX% | - |
+| IV ATM | XX% | - |
+| IV/HV | X,XX | <0.8 vol barata |
 
-**Contexto:** {FOMC, COPOM, earnings, etc}
+## 🔍 VALIDAÇÃO (cross-validation)
+- Preço: $X (CG) / $Y (OKX) → ±X% ✅
+- HV: X% (OKX) / Y% (calc) → ✅
 
----
-
-## 🎯 ESTRUTURA RECOMENDADA
-
-### {Call ATM / Trava / THL}
-
-**Posição:**
-- Ticker: {SERIE}
-- Strike: R$ X,XX
-- Prêmio: R$ X,XX
-- Vencimento: DD/MM/YYYY (XX dias)
-- Quantidade: XXX opções
-
-**Financeiro:**
-- Break-even: R$ X,XX
-- Alvo: R$ X,XX (Ganho: R$ XXX)
-- Stop: R$ X,XX (Perda: R$ XXX)
-
-**Gregas:**
-- Delta: X,XX (Deep ITM/ATM/OTM)
-- Theta: -X,XXX/dia
+## 🎯 ESTRUTURA
+**{Nome da estrutura}**
+- Strikes: ___
+- Vencimento: DD/MM (XX dias)
+- Prêmio: R$ ___
+- Break-even: R$ ___ / R$ ___
+- Ganho máx: R$ ___ | Perda máx: R$ ___
+- Greeks: Δ X | Θ X | V X
 - P(ITM): XX%
 
----
+## 🛡️ RISK GATING
+✅ Macro: sem evento até DD/MM
+✅ Liquidez: OI XXX
+✅ Sizing: X% capital (Kelly 1/4)
+✅ Saída: alvo R$X / stop R$Y
 
-## 💰 KELLY CRITERION
+## 💰 SIZING
+- Kelly Full: XX% | 1/4 Kelly: X%
+- Capital alocado: R$ ___
 
-- Kelly Full: XX% (R$ X.XXX)
-- Kelly 1/4: X% (R$ XXX)
-- Quantidade: XXX opções
-
----
-
-## ⚠️ RISCOS
-
-🔴 **Críticos:** {lista}
-🟠 **Altos:** {lista}
-🟡 **Médios:** {lista}
-
-📅 **Eventos:**
-- DD/MM — FOMC/COPOM/Earnings
-
----
-
-## 🎯 RECOMENDAÇÃO FINAL
-
-- **Ação:** COMPRA
-- **Entrada:** R$ X,XX
-- **Stop:** R$ X,XX
-- **Alvo:** R$ X,XX
-- **Kelly:** X% (R$ XXX)
-
-**P(Sucesso) = XX%**
+## 🎯 DECISÃO FINAL
+**Ação:** COMPRA / VENDA / HOLD
+**Estrutura:** ___
+**Entrada:** R$ ___
+**Stop:** R$ ___ | **Alvo:** R$ ___
+**Confiança:** XX% (X/4 dimensões alinhadas)
 ```
 
-## Regras de Formatação
+## Regras de formatação
 
-1. **Precisão numérica:**
-   - Preços: 2 casas (R$ 3,27)
-   - %: 1 casa (95,5%)
-   - Gregas: 2-3 casas (0,95)
+- Preços: R$ 0,00 (2 casas)
+- %: 1 casa (12,5%)
+- Greeks: 2-3 casas
+- Datas: DD/MM/YYYY
+- Status: 🔴 crítico | 🟠 alto | 🟡 médio | 🟢 baixo | ✅ ok | ⚠️ atenção
 
-2. **Datas:** DD/MM/YYYY
-
-3. **Status:**
-   - 🔴 Crítico
-   - 🟠 Alto
-   - 🟡 Médio
-   - 🟢 Baixo
-   - ✅ OK
-   - ⚠️ Atenção
-   - ❌ Erro
-
-4. **Seções obrigatórias:**
-   - Tese, Fundamentalista, Estatístico
-   - Estrutura, Kelly, Riscos
-   - Recomendação Final
+## Seções obrigatórias
+Tese, Fundamental, Estatístico, **Validação**, Estrutura, **Risk Gating**, Sizing, **Decisão Final**.
+Sem qualquer dessas → relatório incompleto.
 
 ## Integração
-
-Após gerar:
-1. Criar página Notion: "{TICKER} — Análise — {DD/MM}"
-2. Tags: {Ações B3 | Opções | Cripto | THL}
-3. Link database "Análises Quantitativas"
-4. Enviar ao Telegram se P(Sucesso) > 60%
-
+- `decision-synthesis` produz a decisão final
+- `risk-gating` produz a seção Risk Gating
+- `cross-validation` produz a seção Validação
