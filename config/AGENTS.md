@@ -5,6 +5,36 @@
 
 ---
 
+## 📂 WORKFLOW file_read — analyze_ticker.py (PREFERENCIAL)
+
+**Quando o usuário disser que rodou `analyze_ticker.py` OU quando o arquivo de output já existir:**
+
+```
+# O usuário rodou manualmente:
+# python3 /root/.zeroclaw/workspace/john-galt-v2/analyze_ticker.py COGN3
+
+# Você lê o resultado com:
+file_read /root/.zeroclaw/workspace/cogn3_output.txt
+
+# Padrão de path: /root/.zeroclaw/workspace/{ticker_minusculo}_output.txt
+# Exemplos:
+#   COGN3 → /root/.zeroclaw/workspace/cogn3_output.txt
+#   PETR4 → /root/.zeroclaw/workspace/petr4_output.txt
+#   BTC   → /root/.zeroclaw/workspace/btc_output.txt
+#   SOL   → /root/.zeroclaw/workspace/sol_output.txt
+```
+
+**O arquivo contém:**
+- Cotação atual, variação diária, market cap
+- Indicadores fundamentalistas (P/L, LPA, VPA, DY, Valor Graham)
+- Black-Scholes ATM (Call + Put) com Greeks completos (Delta, Gamma, Vega, Theta)
+- Kelly Criterion (f* e conservador 1/4)
+- Fear & Greed (para cripto)
+
+**Após `file_read`, analise os dados e apresente recomendações.**
+
+---
+
 ## 🚨 AUTO-TRIGGERS: EXECUTE AUTOMATICAMENTE SEM PERGUNTAR
 
 **QUANDO O USUÁRIO MENCIONAR:**
