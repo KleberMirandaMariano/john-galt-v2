@@ -314,34 +314,50 @@ def load_system_prompt() -> str:
                 parts.append(f.read())
     return "\n\n---\n\n".join(parts)
 
-def run_suite(test_ids: Optional[list[str]] = None) -> None:
-    """Roda a suite completa via API Anthropic e valida cada resposta."""
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_MODEL = "anthropic/claude-sonnet-4-5"
+
+
+def run_suite(
+    test_ids: Optional[list[str]] = None,
+    model: str = DEFAULT_MODEL,
+) -> list[ValidationResult]:
+    """Roda a suite completa via OpenRouter e valida cada resposta."""
     try:
-        import anthropic
+        from openai import OpenAI
     except ImportError:
-        print("❌ anthropic não instalado. Execute: pip install anthropic")
+        print("❌ openai não instalado. Execute: pip install openai")
         sys.exit(1)
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
-        print("❌ ANTHROPIC_API_KEY não definida. Configure no .env")
+        print("❌ OPENROUTER_API_KEY não definida. Configure no .env")
         sys.exit(1)
 
-    client = anthropic.Anthropic(api_key=api_key)
+    client = OpenAI(
+        api_key=api_key,
+        base_url=OPENROUTER_BASE_URL,
+    )
+
     system_prompt = load_system_prompt()
     cases = TEST_SUITE if not test_ids else [c for c in TEST_SUITE if c.id in test_ids]
+
+    print(f"Modelo: {model}")
+    print(f"Casos: {len(cases)} | Base URL: {OPENROUTER_BASE_URL}")
 
     results = []
     for case in cases:
         print(f"\n[{case.id}] Enviando: '{case.prompt}' ...")
         try:
-            message = client.messages.create(
-                model="claude-sonnet-4-6",
+            response = client.chat.completions.create(
+                model=model,
                 max_tokens=2048,
-                system=system_prompt,
-                messages=[{"role": "user", "content": case.prompt}],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": case.prompt},
+                ],
             )
-            response_text = message.content[0].text
+            response_text = response.choices[0].message.content or ""
         except Exception as e:
             print(f"  ⚠️  Erro na API: {e}")
             results.append(ValidationResult(
@@ -397,7 +413,12 @@ def main() -> None:
     parser.add_argument(
         "--run-suite",
         action="store_true",
-        help="Rodar suite completa via API Anthropic",
+        help="Rodar suite completa via OpenRouter",
+    )
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"Modelo OpenRouter (padrão: {DEFAULT_MODEL})",
     )
     parser.add_argument(
         "--check-response",
@@ -443,7 +464,7 @@ def main() -> None:
         return
 
     if args.run_suite:
-        results = run_suite(args.test_ids)
+        results = run_suite(args.test_ids, model=args.model)
         if args.output_json and results:
             data = [
                 {
