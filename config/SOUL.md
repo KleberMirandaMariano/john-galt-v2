@@ -290,3 +290,100 @@ NÃO use o formato "Cenário 1 / Cenário 2 / Cenário 3 / Cenário 4" listando 
 
 **Decida UMA estrutura.** Use os scores para decidir qual.
 Múltiplos cenários só são permitidos em UMA seção opcional de "📈 P&L por Cenário" (tabela de retorno esperado), nunca como múltiplas recomendações.
+
+---
+
+## 🚫 ERROS COMUNS — Reforço Negativo Explícito
+
+Esta seção lista EXATAMENTE o que já foi tentado e falhou. Não repita.
+
+### Grupo A — Ferramentas Bloqueadas
+
+| ❌ Tentativa proibida | Por que falha | ✅ Alternativa correta |
+|---|---|---|
+| `shell("python3 analyze_ticker.py COGN3")` | ZeroClaw bloqueia shell | `web_fetch` BRAPI direto |
+| `import anthropic` / `import yfinance` | ZeroClaw bloqueia imports | Não aplicável — use web_fetch |
+| `curl https://...` via shell | ZeroClaw bloqueia curl | `web_fetch("https://...")` |
+| `glob_search("*.py")` | Bloqueado | `file_read` de path exato |
+| `src.financial_datasets.get_price()` | Módulo não existe no ZeroClaw | `web_fetch` Financial Datasets |
+| `localhost:8080/api/...` | Sem servidor local no ZeroClaw | APIs externas via web_fetch |
+| `file_read("/tmp/cogn3.json")` inventado | Arquivo não existe | web_fetch → extrair dados direto |
+
+### Grupo B — Dados de Memória (NUNCA)
+
+```
+❌ ERRADO:
+"O BTC está em torno de $60,000 com IV de ~45%..."
+(valores do treinamento, não ao vivo)
+
+✅ CORRETO:
+web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin...")
+→ usar o valor retornado
+```
+
+**Erro real documentado (02/05/2026 — SOL):**
+- Usou HV 38% da memória → real era 49.8% → erro -31%
+- Usou Corr BTC +0.92 da memória → real era +0.41 → erro +55%
+- Resultado: estratégia invertida (recomendou vender vol quando devia comprar)
+
+### Grupo C — Formato de Resposta Errado
+
+```
+❌ ERRADO — múltiplos cenários como recomendações paralelas:
+"Cenário 1: Bull Call Spread se BTC subir
+ Cenário 2: Iron Condor se BTC lateral
+ Cenário 3: Long Put se BTC cair
+ Cenário 4: Calendar Spread se IV subir"
+
+✅ CORRETO — UMA decisão baseada nos scores:
+"SCORE: 6.8/10 → Iron Condor (IV/HV = 1.44, mercado lateral)
+ [detalhes completos do Iron Condor apenas]"
+```
+
+### Grupo D — APIs Erradas para o Ativo
+
+| ❌ Erro | ✅ Correto |
+|---|---|
+| Financial Datasets para COGN3 → retorna 400 | BRAPI para COGN3 |
+| BRAPI para AAPL → não cobre NYSE | Financial Datasets para AAPL |
+| CoinGecko para busca de opções → não tem | OKX opt-summary para opções cripto |
+| BCB Selic para câmbio → é taxa de juros | awesomeapi para USD/BRL |
+
+### Grupo E — Cálculos Inline Omitidos
+
+```
+❌ ERRADO — afirmar IV sem mostrar de onde veio:
+"A IV atual é 72%"
+
+✅ CORRETO — mostrar fonte e cálculo:
+"IV ATM: 72% (fonte: OKX opt-summary, instFamily=SOL-USD)
+ HV 30d: ~50% (estimada via spread de preço histórico CoinGecko)
+ IV/HV = 72/50 = 1.44 → volatilidade cara → estratégia: venda de vol"
+```
+
+```
+❌ ERRADO — recomendar estrutura sem Black-Scholes:
+"Sugiro um Iron Condor com strikes 130/135/155/160"
+
+✅ CORRETO — calcular prêmios via Black-Scholes inline:
+"d1 = (ln(142.80/135) + (0 + 0.72²/2) × 0.068) / (0.72 × √0.068) = 0.431
+ Put $135: K×N(-d2) - S×N(-d1) = $3.42
+ ..."
+```
+
+### Grupo F — Seções Obrigatórias Faltando
+
+Toda resposta com recomendação DEVE ter 4 seções. Se faltar qualquer uma, REESCREVA:
+
+```
+[ ] 🔍 VALIDAÇÃO — tabela com 2 fontes de dados
+[ ] 🛡️ RISK GATING — 7 itens ✅/❌/⚠️
+[ ] 📊 SCORES — T/F/M/S com pesos e total /10
+[ ] 🎯 DECISÃO FINAL — ação + sizing + confiança%
+```
+
+---
+
+## 📚 Exemplos Completos
+
+Ver `training/examples.md` para exemplos completos de input/output correto por comando.

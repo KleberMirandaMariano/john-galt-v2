@@ -14,8 +14,11 @@ requests>=2.31.0
 aiohttp>=3.9.0
 httpx>=0.27.0
 
-# === IA - Anthropic SDK (preferido) ===
+# === IA - Anthropic SDK ===
 anthropic>=0.25.0
+
+# === IA - OpenAI SDK (usado pelo validate_behavior.py via OpenRouter) ===
+openai>=1.30.0
 
 # === AWS (para agent_swarm_v2_0_bedrock.py) ===
 boto3>=1.34.0
