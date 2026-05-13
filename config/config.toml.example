@@ -177,6 +177,9 @@ cli = true
 message_timeout_secs = 300
 
 [channels_config.telegram]
+# Novo token gerado em 13/05/2026 — bot @kleberzerobot
+# Para atualizar no ZeroClaw: editar ~/.zeroclaw/config.toml
+token = "8930603673:AAHHbMpUnsNq5KaAcJNsuuvZ1nSaeARHaP0"
 allowed_users = [
     "klebermd13",
     "1808474055",

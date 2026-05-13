@@ -400,12 +400,50 @@ def save_report(report: str, output_path: Path = None) -> Path:
 
 def send_telegram(report: str):
     """
-    Enviar relatório via Telegram (placeholder)
+    Enviar relatório via Telegram
     
-    TODO: Integrar com bot Telegram do John Galt
+    Token e chat_id via variáveis de ambiente ou hardcoded como fallback.
+    Divide mensagens longas automaticamente (limite Telegram: 4096 chars).
     """
-    print("📱 TODO: Implementar envio Telegram")
-    print(f"   Tamanho do relatório: {len(report)} chars")
+    import requests as _requests
+
+    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "8930603673:AAHHbMpUnsNq5KaAcJNsuuvZ1nSaeARHaP0")
+    TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1808474055")
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    
+    # Dividir em chunks de 4096 chars (limite do Telegram)
+    MAX_LEN = 4096
+    chunks = [report[i:i+MAX_LEN] for i in range(0, len(report), MAX_LEN)]
+    
+    success = True
+    for i, chunk in enumerate(chunks, 1):
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": chunk,
+            "parse_mode": "Markdown"
+        }
+        try:
+            resp = _requests.post(url, json=payload, timeout=15)
+            if resp.status_code == 200:
+                print(f"   ✅ Chunk {i}/{len(chunks)} enviado")
+            else:
+                # Tentar sem Markdown se der erro de parse
+                payload["parse_mode"] = ""
+                resp2 = _requests.post(url, json=payload, timeout=15)
+                if resp2.status_code == 200:
+                    print(f"   ✅ Chunk {i}/{len(chunks)} enviado (sem markdown)")
+                else:
+                    print(f"   ❌ Erro chunk {i}: {resp2.text[:100]}")
+                    success = False
+        except Exception as e:
+            print(f"   ❌ Exceção ao enviar chunk {i}: {e}")
+            success = False
+    
+    if success:
+        print(f"📱 Telegram: ✅ Relatório enviado ({len(chunks)} parte(s))")
+    else:
+        print("📱 Telegram: ⚠️ Alguns chunks falharam")
 
 
 def send_email(report: str):
