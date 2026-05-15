@@ -1,4 +1,7 @@
-# ZeroClaw config.toml (sanitizado - sem API keys)
+# ZeroClaw config.toml — John Galt v2.0
+# ATENÇÃO: Substituir <BOT_TOKEN> pelo token real ao configurar no VPS
+# Executar: zeroclaw onboard --channels-only
+
 default_provider = "openrouter"
 default_model = "anthropic/claude-haiku-4.5"
 default_temperature = 0.7
@@ -16,51 +19,21 @@ runtime_trace_max_entries = 200
 level = "full"
 workspace_only = true
 allowed_commands = [
-    "git",
-    "npm",
-    "cargo",
-    "ls",
-    "cat",
-    "grep",
-    "find",
-    "echo",
-    "pwd",
-    "wc",
-    "head",
-    "tail",
-    "date","python3","pip","zeroclaw", "curl", "wget","bash","sh",	
+    "git", "npm", "cargo", "ls", "cat", "grep", "find",
+    "echo", "pwd", "wc", "head", "tail", "date",
+    "python3", "pip", "zeroclaw", "curl", "wget", "bash", "sh",
 ]
 forbidden_paths = [
-    "/etc",
-    "/root",
-    "/home",
-    "/usr",
-    "/bin",
-    "/sbin",
-    "/lib",
-    "/opt",
-    "/boot",
-    "/dev",
-    "/proc",
-    "/sys",
-    "/var",
-    "/tmp",
-    "~/.ssh",
-    "~/.gnupg",
-    "~/.aws",
-    "~/.config",
+    "/etc", "/root", "/home", "/usr", "/bin", "/sbin", "/lib",
+    "/opt", "/boot", "/dev", "/proc", "/sys", "/var", "/tmp",
+    "~/.ssh", "~/.gnupg", "~/.aws", "~/.config",
 ]
 max_actions_per_hour = 20
 max_cost_per_day_cents = 500
 require_approval_for_medium_risk = true
 block_high_risk_commands = true
 shell_env_passthrough = []
-auto_approve = [
-    "shell",
-    "file_read",
-    "file_write",
-    "memory_recall",
-]
+auto_approve = ["shell", "file_read", "file_write", "memory_recall"]
 always_ask = []
 allowed_roots = ["/root/.zeroclaw/workspace"]
 non_cli_excluded_tools = []
@@ -84,14 +57,9 @@ sign_events = false
 [security.otp]
 enabled = false
 method = "totp"
+token_ttl_secs = 30
 cache_valid_secs = 300
-gated_actions = [
-    "shell",
-    "file_write",
-    "browser_open",
-    "browser",
-    "memory_forget",
-]
+gated_actions = ["shell", "file_write", "browser_open", "browser", "memory_forget"]
 gated_domains = []
 gated_domain_categories = []
 
@@ -137,14 +105,12 @@ parallel_tools = false
 tool_dispatcher = "auto"
 
 [skills]
-# Habilitar skills da pasta skills/ — necessário para decision-synthesis,
-# risk-gating, cross-validation e demais skills auto-disparáveis funcionarem.
 open_skills_enabled = true
 prompt_injection_mode = "full"
 
 [[model_routes]]
 hint = "conversation"
-provider = "zeroclaw"
+provider = "openrouter"
 model = "anthropic/claude-haiku-4.5"
 
 [query_classification]
@@ -152,14 +118,8 @@ enabled = true
 
 [[query_classification.rules]]
 hint = "conversation"
-keywords = [
-    "mercado",
-    "criptomoeda",
-]
-patterns = [
-    "mercado",
-    "criptomoeda",
-]
+keywords = ["mercado", "criptomoeda"]
+patterns = ["mercado", "criptomoeda"]
 min_length = 100
 max_length = 500
 priority = 0
@@ -177,9 +137,9 @@ cli = true
 message_timeout_secs = 300
 
 [channels_config.telegram]
-# Novo token gerado em 13/05/2026 — bot @kleberzerobot
-# Para atualizar no ZeroClaw: editar ~/.zeroclaw/config.toml
-token = "8930603673:AAHHbMpUnsNq5KaAcJNsuuvZ1nSaeARHaP0"
+# bot_token é criptografado pelo ZeroClaw automaticamente via: zeroclaw onboard --channels-only
+# Novo bot: @zerokmmbot — token gerado em 13/05/2026
+bot_token = "<EXECUTAR zeroclaw onboard --channels-only PARA GERAR>"
 allowed_users = [
     "klebermd13",
     "1808474055",
@@ -203,6 +163,7 @@ vector_weight = 0.7
 keyword_weight = 0.3
 min_relevance_score = 0.4
 embedding_cache_size = 10000
+chunk_max_tokens = 512
 response_cache_enabled = false
 response_cache_ttl_minutes = 60
 response_cache_max_entries = 5000
@@ -226,31 +187,13 @@ port = 42617
 host = "127.0.0.1"
 require_pairing = true
 allow_public_bind = false
+paired_tokens = []
 pair_rate_limit_per_minute = 10
 webhook_rate_limit_per_minute = 60
 trust_forwarded_headers = false
 rate_limit_max_keys = 10000
 idempotency_ttl_secs = 300
 idempotency_max_keys = 10000
-
-[composio]
-enabled = false
-entity_id = "default"
-
-encrypt = true
-
-[browser]
-enabled = false
-allowed_domains = []
-backend = "agent_browser"
-native_headless = true
-native_webdriver_url = "http://127.0.0.1:9515"
-
-[browser.computer_use]
-endpoint = "http://127.0.0.1:8787/v1/actions"
-timeout_ms = 15000
-allow_remote_endpoint = false
-window_allowlist = []
 
 [http_request]
 enabled = true
@@ -260,15 +203,11 @@ allowed_domains = [
     "brapi.dev",
     "www.okx.com",
     "api.bcb.gov.br",
-    "localhost"
+    "api.financialdatasets.ai",
+    "localhost",
 ]
 max_response_size = 1000000
 timeout_secs = 30
-
-[multimodal]
-max_images = 4
-max_image_size_mb = 5
-allow_remote_fetch = false
 
 [web_fetch]
 enabled = true
@@ -283,12 +222,6 @@ provider = "duckduckgo"
 max_results = 5
 timeout_secs = 15
 
-[proxy]
-enabled = false
-no_proxy = []
-scope = "zeroclaw"
-services = []
-
 [identity]
 format = "openclaw"
 
@@ -299,47 +232,29 @@ monthly_limit_usd = 100.0
 warn_at_percent = 80
 allow_override = false
 
-[cost.prices."anthropic/claude-sonnet-4-20250514"]
-input = 3.0
-output = 15.0
-
 [cost.prices."anthropic/claude-haiku-4.5"]
 input = 0.25
 output = 1.25
 
-[cost.prices."openai/gpt-4o-mini"]
-input = 0.15
-output = 0.6
-
-[cost.prices."openai/gpt-4o"]
-input = 5.0
+[cost.prices."anthropic/claude-sonnet-4-20250514"]
+input = 3.0
 output = 15.0
 
 [cost.prices."anthropic/claude-opus-4-20250514"]
 input = 15.0
 output = 75.0
 
-[cost.prices."google/gemini-1.5-pro"]
-input = 1.25
-output = 5.0
+[cost.prices."openai/gpt-4o"]
+input = 5.0
+output = 15.0
+
+[cost.prices."openai/gpt-4o-mini"]
+input = 0.15
+output = 0.6
 
 [cost.prices."google/gemini-2.0-flash"]
 input = 0.1
 output = 0.4
-
-[cost.prices."anthropic/claude-3.5-sonnet"]
-input = 3.0
-output = 15.0
-
-[cost.prices."openai/o1-preview"]
-input = 15.0
-output = 60.0
-
-[peripherals]
-enabled = false
-boards = []
-
-[agents]
 
 [hooks]
 enabled = true
@@ -350,25 +265,13 @@ command_logger = false
 [hooks.builtin.webhook_audit]
 enabled = false
 url = ""
-tool_patterns = []
-include_args = false
-max_args_bytes = 4096
 
 [hardware]
 enabled = false
-transport = "None"
-baud_rate = 115200
-workspace_datasheets = false
 
 [transcription]
 enabled = false
-api_url = "https://api.groq.com/openai/v1/audio/transcriptions"
 model = "whisper-large-v3-turbo"
-max_duration_secs = 120
 
 [tts]
 enabled = false
-default_provider = "openrouter"
-default_voice = "alloy"
-default_format = "mp3"
-max_text_length = 4096
