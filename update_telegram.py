@@ -20,13 +20,15 @@ OLD = """def send_telegram(report: str):
 NEW = """def send_telegram(report: str):
     \"\"\"
     Enviar relatório via Telegram.
-    Token/chat_id via env vars ou fallback hardcoded.
+    Token/chat_id via env vars (TELEGRAM_TOKEN obrigatório).
     Divide automaticamente mensagens > 4096 chars (limite Telegram).
     \"\"\"
     import requests as _req
 
-    TOKEN = os.getenv("TELEGRAM_TOKEN", "8930603673:AAHHbMpUnsNq5KaAcJNsuuvZ1nSaeARHaP0")
+    TOKEN = os.getenv("TELEGRAM_TOKEN")
     CHAT  = os.getenv("TELEGRAM_CHAT_ID", "1808474055")
+    if not TOKEN:
+        raise RuntimeError("TELEGRAM_TOKEN não definido. Defina no .env antes de enviar.")
     URL   = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
     chunks = [report[i:i+4096] for i in range(0, len(report), 4096)]
