@@ -12,9 +12,14 @@ Workflow:
 """
 
 import asyncio
+import sys
+import os
 from typing import Dict
 from datetime import datetime
 import json
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+from latency_tracker import LatencyTracker
 
 from agent_swarm_analyzer import AgentSwarmAnalyzer
 from reflection_engine import ReflectionEngine
@@ -55,6 +60,8 @@ class JohnGaltSuperIntelligence:
             Dict com análise final validada
         """
         
+        tracker = LatencyTracker()
+
         print("\n" + "="*70)
         print("🧠 JOHN GALT SUPERINTELLIGENCE - PHASE 1")
         print("="*70)
@@ -62,89 +69,96 @@ class JohnGaltSuperIntelligence:
         print(f"Market: {market}")
         print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
-        
+
         # STEP 1: Agent Swarm - Busca paralela de dados
         print("STEP 1: 🚀 AGENT SWARM - Parallel Data Fetching")
         print("-" * 70)
-        
-        swarm_result = await self.swarm.analyze_parallel(ticker, market)
+
+        with tracker.step("agent_swarm"):
+            swarm_result = await self.swarm.analyze_parallel(ticker, market)
         data_sources = swarm_result["data"]
-        
-        print(f"  ✅ Data collected in {swarm_result['execution_time_seconds']:.2f}s")
+
+        print(f"  ✅ Data collected in {tracker.steps['agent_swarm']:.2f}s")
         print(f"  ✅ Completeness: {swarm_result['validation']['completeness']*100:.0f}%")
-        
+
         if not swarm_result["validation"]["complete"]:
             print(f"  ⚠️  Missing: {swarm_result['validation']['missing_fields']}")
-        
+
         # STEP 2: Gerar análise inicial
         print("\nSTEP 2: 📊 Generating Initial Analysis")
         print("-" * 70)
-        
-        initial_analysis = self._generate_initial_analysis(
-            ticker, 
-            data_sources,
-            market
-        )
-        
-        print("  ✅ Initial analysis generated")
-        
+
+        with tracker.step("initial_analysis"):
+            initial_analysis = self._generate_initial_analysis(
+                ticker,
+                data_sources,
+                market
+            )
+
+        print(f"  ✅ Initial analysis generated in {tracker.steps['initial_analysis']:.2f}s")
+
         # STEP 3: Reflection Engine - Autocrítica e refinamento
         print("\nSTEP 3: 🔄 REFLECTION ENGINE - Self-Critique & Refinement")
         print("-" * 70)
-        
-        task_description = (
-            user_query or 
-            f"Análise quantitativa de opções para {ticker}"
-        )
-        
-        reflection_result = self.reflection.analyze_with_reflection(
-            ticker,
-            initial_analysis,
-            data_sources
-        )
-        
+
+        with tracker.step("reflection_engine"):
+            reflection_result = self.reflection.analyze_with_reflection(
+                ticker,
+                initial_analysis,
+                data_sources
+            )
+
         final_analysis = reflection_result["final_analysis"]
-        
-        print(f"  ✅ Reflection completed")
+
+        print(f"  ✅ Reflection completed in {tracker.steps['reflection_engine']:.2f}s")
         print(f"  ✅ Iterations: {reflection_result['total_iterations']}")
         print(f"  ✅ Final Quality: {reflection_result['final_quality']:.2f}")
-        
+
         # STEP 4: Auto Validator - Validação final
         print("\nSTEP 4: ✅ AUTO VALIDATOR - Final Quality Check")
         print("-" * 70)
-        
-        # Converter análise de texto para dict (simplified)
+
         analysis_dict = {
             "timestamp": datetime.now().isoformat(),
             **data_sources
         }
-        
-        validation = self.validator.validate(analysis_dict, market)
-        
+
+        with tracker.step("auto_validator"):
+            validation = self.validator.validate(analysis_dict, market)
+
         print(f"  Status: {'✅ PASSED' if validation['valid'] else '❌ FAILED'}")
         print(f"  Score: {validation['score']:.2f}")
         print(f"  Checks: {validation['checks_passed']}/{validation['total_checks']}")
-        
+
         if validation["errors"]:
             print(f"  🚨 Errors: {len(validation['errors'])}")
             for error in validation["errors"]:
                 print(f"    - {error}")
-        
+
         if validation["warnings"]:
             print(f"  ⚠️  Warnings: {len(validation['warnings'])}")
             for warning in validation["warnings"]:
                 print(f"    - {warning}")
-        
-        # Resultado final
+
+        # Latency report
+        latency_record = tracker.flush(ticker, market, approved=validation["valid"])
+        regressions = tracker.check_regressions(threshold=2.0)
+
         print("\n" + "="*70)
-        
+        print(tracker.summary())
+
+        if regressions:
+            print("\n  ⚠️  REGRESSÕES DE LATÊNCIA DETECTADAS:")
+            for r in regressions:
+                print(f"    - {r['step']}: {r['elapsed_s']:.2f}s ({r['ratio']}x P95={r['p95_s']:.2f}s)")
+
+        print("\n" + "="*70)
         if validation["valid"]:
             print("✅ ANALYSIS APPROVED - Ready to send!")
         else:
             print("❌ ANALYSIS REJECTED - Fix errors before sending")
-        
         print("="*70 + "\n")
-        
+
         return {
             "ticker": ticker,
             "market": market,
@@ -157,7 +171,12 @@ class JohnGaltSuperIntelligence:
                 "final_quality": reflection_result["final_quality"]
             },
             "validation": validation,
-            "swarm_execution_time": swarm_result["execution_time_seconds"],
+            "latency": {
+                "run_id": tracker.run_id,
+                "steps": tracker.steps,
+                "total_s": tracker.total,
+                "regressions": regressions,
+            },
             "approved": validation["valid"]
         }
     
