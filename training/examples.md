@@ -1,325 +1,299 @@
-# Training Examples — John Galt v2
+# TRAINING EXAMPLES — John Galt v2.0
+# Exemplos canônicos para consistência de respostas
 
-Banco de exemplos reais de input/output correto para cada comando.
-Quanto mais exemplos, mais consistente o comportamento.
+> **REGRA DE OURO**: NUNCA use dados da memória/treinamento.
+> Antes de qualquer número, execute web_fetch para obter dados frescos.
+> Se o fetch falhar, informe o erro — não substitua com valores memorizados.
+
+---
+
+## ANTI-PADRÃO vs PADRÃO CORRETO
+
+### ❌ ERRADO — Dados da memória
+```
+Usuário: .cripto
+John Galt: BTC está em $67.000 (dado de treinamento, pode ter meses de atraso)
+```
+
+### ✅ CORRETO — Dados frescos
+```
+Usuário: .cripto
+John Galt:
+[1] web_fetch → CoinGecko /simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true
+[2] web_fetch → Alternative.me /fng/ (Fear & Greed)
+[3] web_fetch → CoinGecko /global (dominância BTC)
+[resultado com timestamp e dados reais]
+```
 
 ---
 
 ## EXEMPLO 1 — Comando `.cripto`
 
-**Input do usuário:**
+**Trigger**: usuário digita `.cripto`
+
+**Workflow obrigatório**:
 ```
-cripto
-```
-
-**O que John Galt DEVE fazer:**
-1. `web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd,brl&include_24hr_change=true&include_market_cap=true")`
-2. `web_fetch("https://api.alternative.me/fng/?limit=1")`
-3. Montar relatório no formato abaixo
-
-**Output esperado (formato exato):**
-```
-📊 CRIPTO — 11/05/2026 09:30 BRT
-✅ Dados via CoinGecko + Fear&Greed | ao vivo
-
-💰 PREÇO & PERFORMANCE
-  BTC: $62,450 (R$ 318,495) | 24h: +2.34%
-  ETH: $3,120 (R$ 15,912) | 24h: +1.87%
-  SOL: $142.80 (R$ 728.28) | 24h: -0.55%
-
-😨 SENTIMENTO
-  Fear & Greed: 58 (Ganância)
-  → Mercado otimista, cautela recomendada
-
-📈 CONTEXTO
-  BTC Dominância: 52.3% (risco moderado)
+Step 1: web_fetch https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple&vs_currencies=usd&include_24hr_change=true&include_market_cap=true
+Step 2: web_fetch https://api.alternative.me/fng/
+Step 3: web_fetch https://api.coingecko.com/api/v3/global
 ```
 
-**Erros que NÃO deve cometer:**
-- ❌ Usar dados de memória sem buscar via web_fetch
-- ❌ Tentar rodar `python3` ou `shell`
-- ❌ Mostrar só BTC sem ETH e SOL
-- ❌ Omitir Fear & Greed
-
----
-
-## EXEMPLO 2 — Comando `.analise COGN3`
-
-**Input do usuário:**
+**Output canônico**:
 ```
-analise COGN3
-```
-ou
-```
-.analise COGN3
-```
+🔷 CRIPTO MARKET — [DATA HORA BRT]
 
-**O que John Galt DEVE fazer:**
-1. `web_fetch("https://brapi.dev/api/quote/COGN3?token=tP2QrzuthuXx4JjrnBqnkd")`
-2. `web_fetch("https://api.alternative.me/fng/?limit=1")`
-3. Extrair de `results[0]`: preço, variação, P/L, LPA, marketCap, 52w high/low
-4. Calcular posição na faixa: `(preco - low) / (high - low) × 100`
-5. Montar análise no formato abaixo
+BTC   $XX.XXX  | Δ24h: +X.X% | MCap: $XTri
+ETH   $X.XXX   | Δ24h: +X.X%
+SOL   $XXX     | Δ24h: +X.X%
+XRP   $X.XX    | Δ24h: +X.X%
 
-**Output esperado (formato exato):**
-```
-📊 ANÁLISE — COGN3 (Cogna Educação)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 PREÇO
+📊 Sentimento: Fear & Greed = XX/100 (GREED/FEAR/NEUTRAL)
+🔶 BTC Dominância: XX.X%
 
-R$ 2.82 (+1.44%)
-Market Cap: R$ 3.1B
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📈 MÚLTIPLOS
-
-P/L:  8.5x
-LPA:  R$ 0.3318
-52w:  R$ 1.92 — R$ 4.17
-Pos:  40% da faixa anual
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-😨 SENTIMENTO
-
-Fear & Greed: 47 (Neutral)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 ANÁLISE
-
-Posição de 40% na faixa anual indica zona intermediária.
-P/L de 8.5x é atrativo para o setor de educação.
-Sentimento neutro sugere ausência de pressão direcional.
-Upside para topo da faixa: +48% (R$ 4.17).
-```
-
-**Campos que DEVEM estar presentes:**
-- Preço atual com variação %
-- Market Cap em BRL (com escala B/M)
-- P/L (priceEarnings)
-- LPA (earningsPerShare)
-- Faixa 52 semanas (high e low)
-- Posição % na faixa anual (calculada inline)
-- Fear & Greed com classificação
-- Interpretação qualitativa
-
-**Erros que NÃO deve cometer:**
-- ❌ Usar `src.` no caminho de imports
-- ❌ Tentar `python3 analyze_ticker.py` via shell
-- ❌ Usar `localhost` para acessar dados
-- ❌ Inventar P/L sem buscar BRAPI
-- ❌ Calcular posição de forma errada (confundir high com low)
-
----
-
-## EXEMPLO 3 — Comando `.analise AAPL`
-
-**Input do usuário:**
-```
-analise AAPL
-```
-
-**O que John Galt DEVE fazer:**
-1. `web_fetch("https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL")` → preço
-2. `web_fetch("https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL")` → fundamentalistas
-3. Calcular 4 scores inline (Value, Quality, Growth, Risk)
-4. Calcular Score Final = Value×0.30 + Quality×0.30 + Growth×0.25 + Risk×0.15
-5. Dar recomendação baseada no score
-
-**Score Value (calcular inline):**
-- P/L < 10 → 10 | 10-15 → 8 | 15-25 → 6 | 25-40 → 4 | >40 → 2
-- P/VP < 1.5 → 10 | 1.5-3 → 7 | 3-6 → 4 | >6 → 2
-
-**Score Quality (calcular inline):**
-- ROE ×100: >25% → 10 | 15-25% → 8 | 10-15% → 6 | <10% → 4
-- Margem ×100: >20% → 10 | 10-20% → 7 | 5-10% → 5 | <5% → 3
-
-**Output esperado:**
-```
-📊 ANÁLISE FUNDAMENTALISTA — AAPL
-✅ Dados via Financial Datasets | ao vivo
-
-💰 PREÇO
-  $182.50 (+0.87%)
-
-📊 SCORES (0-10 cada)
-  Value:   6.5  (P/L: 29.3x → 4 | P/VP: 47.8x → 2 → avg 3.0... ajustar conforme cálculo)
-  Quality: 8.5  (ROE: 147% → 10 | Margem: 26.4% → 10 → avg 10.0)
-  Growth:  5.0  (Rev Growth: +6.1% → 5)
-  Risk:    7.0  (D/E: 1.72 → 5 | Curr: 0.99 → 2 → avg 3.5)
-
-  FINAL: 7.02/10 → BUY
-
-💡 ANÁLISE
-  AAPL apresenta qualidade premium (ROE > 100%), justificando múltiplos elevados.
-  Crescimento moderado de 6.1% sugere empresa madura.
-  Liquidez baixa (current ratio < 1) — risco de curto prazo limitado pela geração de caixa.
-```
-
-**Regras críticas:**
-- ⚠️ Financial Datasets NÃO cobre B3 — se pedirem COGN3 via essa API, usar BRAPI
-- ⚠️ Financial Datasets NÃO precisa de API key nem headers especiais
-- Mostrar TODOS os 4 scores antes do final
-- Explicar o raciocínio de cada score
-
----
-
-## EXEMPLO 4 — Comando `.resumo`
-
-**Input do usuário:**
-```
-resumo
-```
-ou
-```
-.resumo
-```
-
-**O que John Galt DEVE fazer (3 web_fetch em paralelo):**
-1. `web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd,brl&include_24hr_change=true")`
-2. `web_fetch("https://brapi.dev/api/quote/PETR4,VALE3,ITUB4?token=tP2QrzuthuXx4JjrnBqnkd")`
-3. `web_fetch("https://api.alternative.me/fng/?limit=1")`
-4. `web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")`
-
-**Output esperado:**
-```
-📊 RESUMO MACRO — 11/05/2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌎 CRIPTO
-  BTC: $62,450 (+2.34%)
-  ETH: $3,120 (+1.87%)
-  SOL: $142.80 (-0.55%)
-  Fear & Greed: 58 (Ganância)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🇧🇷 B3
-  PETR4: R$ 38.42 (+0.92%)
-  VALE3: R$ 64.10 (-1.23%)
-  ITUB4: R$ 33.80 (+0.44%)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💱 MACRO
-  USD/BRL: R$ 5.10 (-0.31%)
+📌 Fonte: CoinGecko + Alternative.me | Atualizado: [TIMESTAMP]
 ```
 
 ---
 
-## EXEMPLO 5 — Comando `estruturas SOL` / `estratégias SOL`
+## EXEMPLO 2 — Comando `.analise PETR4` (B3)
 
-**Input do usuário:**
-```
-estruturas SOL
-```
-ou
-```
-estratégias de opções para SOL
-```
+**Trigger**: usuário digita `.analise PETR4` ou `.analise [TICKER_B3]`
 
-**O que John Galt DEVE fazer:**
-1. `web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd&include_24hr_change=true")`
-2. `web_fetch("https://www.okx.com/api/v5/public/opt-summary?instFamily=SOL-USD")`
-3. `web_fetch("https://api.alternative.me/fng/?limit=1")`
-4. Calcular IV/HV ratio
-5. Calcular Black-Scholes INLINE (não via script externo)
-6. Selecionar UMA estratégia principal + contexto
-
-**Cálculo Black-Scholes inline obrigatório:**
+**Workflow obrigatório**:
 ```
-S = preço_spot_SOL
-K = strike_ATM (≈ S)
-T = DTE / 365
-r = 0 (cripto, sem taxa livre de risco)
-σ = IV_ATM / 100
-
-d1 = (ln(S/K) + (0 + σ²/2) × T) / (σ × √T)
-d2 = d1 - σ × √T
-Call = S × N(d1) - K × N(d2)
-Put  = K × N(-d2) - S × N(-d1)
-
-Delta_call = N(d1)
-Gamma = N'(d1) / (S × σ × √T)
-Vega  = S × N'(d1) × √T / 100
-Theta = -(S × N'(d1) × σ) / (2 × √T) / 365
+Step 1: web_fetch https://brapi.dev/api/quote/PETR4?token={BRAPI_TOKEN}&fundamental=true
+Step 2: web_fetch https://brapi.dev/api/quote/PETR4/options?token={BRAPI_TOKEN}
+Step 3: web_fetch https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json (Selic)
 ```
 
-**Output esperado:**
+**Cálculos obrigatórios**:
+```python
+# Valor Graham
+VPA = dados["bookValue"]
+LPA = dados["epsTrailingTwelveMonths"]
+valor_graham = (22.5 * LPA * VPA) ** 0.5
+
+# Margem de segurança
+preco_atual = dados["regularMarketPrice"]
+margem = (valor_graham - preco_atual) / valor_graham * 100
+
+# Risk Gate — só avança para opções se aprovado
+p_l = dados["priceEarningsRatio"]
+risk_gate = "APROVADO" if (p_l < 20 and margem > 15) else "REPROVADO"
 ```
-📊 ANÁLISE QUANT — SOL — 11/05/2026 09:30 BRT
 
-## 🔍 VALIDAÇÃO (2 fontes)
-| Dado    | Fonte 1       | Fonte 2       | Δ    | Status |
-|---------|---------------|---------------|------|--------|
-| Preço   | $142.80 (CG)  | $142.75 (OKX) | 0.04%| ✅     |
-| IV ATM  | 72% (OKX)     | ~68% (calc)   | 4pp  | ✅     |
+**Output canônico**:
+```
+📊 ANÁLISE — PETR4 | [DATA]
 
-## 🛡️ RISK GATING (7 itens)
-| # | Item | Status |
-|---|------|--------|
-| 1 | Macro ≤3 dias? (FOMC/CPI) | ✅ Sem eventos |
-| 2 | Liquidez OI > $100M | ✅ $2.3B OI |
-| 3 | Drawdown atual mês < 10% | ✅ -3.2% |
-| 4 | Correlação BTC 60d | ✅ +0.72 |
-| 5 | Sizing Kelly 1/4 máx 5% | ✅ 2.1% |
-| 6 | Horizon coerente (DTE = tese) | ✅ 25 DTE |
-| 7 | Plano de saída definido | ✅ stop -50%, alvo +100% |
+PREÇO: R$ XX,XX | Δ: +X,X%
+P/L: XX.X | P/VP: X.XX | DY: X,X%
 
-VEREDICTO: APROVADO
+💎 Valor Graham: R$ XX,XX
+📐 Margem Segurança: XX% [ATRAENTE/NEUTRA/CARA]
 
-## 📊 SCORES (0-10 cada)
-| Dimensão    | Score | Peso | Contribuição |
-|-------------|-------|------|--------------|
-| Técnico     | 6.5   | 25%  | 1.63         |
-| Fundamental | 7.0   | 30%  | 2.10         |
-| Macro       | 6.0   | 20%  | 1.20         |
-| Sentiment   | 6.5   | 25%  | 1.63         |
-| **Total**   |       |      | **6.56/10**  |
+🚦 Risk Gate: APROVADO/REPROVADO
+Scores: Valor=X/10 | Momentum=X/10 | Risco=X/10
 
-Alinhamento: 3/4 dimensões → confiança 65%
+📋 ESTRUTURA SUGERIDA (se Risk Gate APROVADO):
+Bull Put Spread PETR4:
+- Vende Put K=XX strike, vencimento [MÊS]
+- Compra Put K=XX strike (proteção)
+- Prêmio líquido: R$ X,XX | Max loss: R$ X,XX
+- Prob. sucesso: ~XX%
 
-## 🎯 ESTRUTURA RECOMENDADA
-**Iron Condor ⭐ TOP PICK** (IV/HV = 1.44 → vol cara, vender)
-- BUY PUT $130 | SELL PUT $135 | SELL CALL $155 | BUY CALL $160
-- DTE: 25 | Crédito: $2.80 | Perda máx: -$2.20 | RR: 1.27:1
-- Greeks: Δ +0.02 | Θ +$0.18/dia | V -$0.12/1%IV
-- Break-even: $132.20 / $157.80
-
-## 💰 SIZING
-- Kelly Full: 8.4% | 1/4 Kelly: 2.1%
-- Capital sugerido: 2.1% do portfólio
-
-## 🎯 DECISÃO FINAL
-**Ação:** VENDA DE VOL
-**Estrutura:** Iron Condor
-**Entrada:** crédito $2.80 | **Stop:** se SOL sair do range | **Alvo:** $0 (expire sem valor)
-**Confiança:** 65%
-**Validade:** até 05/06/2026
+📌 Fonte: BRAPI | Selic: X,XX% | Atualizado: [TIMESTAMP]
 ```
 
 ---
 
-## EXEMPLO 6 — Situação: usuário menciona arquivo de output
+## EXEMPLO 3 — Comando `.analise SOL` (Crypto)
 
-**Input do usuário:**
+**Trigger**: usuário digita `.analise SOL` ou `.analise [CRYPTO]`
+
+**Workflow obrigatório**:
 ```
-rodei o analyze_ticker.py no COGN3, pode analisar?
+Step 1: web_fetch https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd&include_24hr_change=true&include_7d_change=true&include_market_cap=true
+Step 2: web_fetch https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=30&interval=daily
+  → Extrai 30 preços de fechamento para calcular HV REAL
+Step 3: web_fetch https://www.okx.com/api/v5/market/tickers?instType=OPTION&uly=SOL-USD (opções OKX)
 ```
 
-**O que John Galt DEVE fazer:**
-1. `file_read /root/.zeroclaw/workspace/cogn3_output.txt`
-2. Analisar os dados retornados
-3. Montar recomendação baseada no arquivo
+**Cálculo HV obrigatório** (NUNCA use HV de memória):
+```python
+# A partir dos dados do market_chart (Step 2):
+precos = [item[1] for item in market_chart["prices"]]  # 30 preços
+retornos = [ln(precos[i]/precos[i-1]) for i in range(1, len(precos))]
+variancia = sum((r - mean(retornos))**2 for r in retornos) / (len(retornos) - 1)
+HV_30d = sqrt(variancia) * sqrt(365) * 100  # em %
+```
 
-**NÃO deve:**
-- ❌ Tentar rodar `python3 analyze_ticker.py` novamente
-- ❌ Fazer web_fetch redundante se os dados já estão no arquivo
-- ❌ Ignorar o arquivo e usar memória
+**Output canônico**:
+```
+📊 ANÁLISE — SOL/USD | [DATA]
+
+PREÇO: $XXX,XX | Δ24h: +X,X% | Δ7d: +X,X%
+MCap: $XBi | Rank: #X
+
+📈 Volatilidade:
+HV 30d: XX,X% (calculado de 30 fechamentos reais)
+IV estimada: XX,X% | IV/HV ratio: X,XX
+
+🎯 ESTRUTURAS OKX (se liquidez disponível):
+Straddle SOL: Strike $XXX, venc. [DATA]
+- Call: $X,XX | Put: $X,XX | Total: $X,XX
+- Breakeven: $XXX / $XXX
+
+📌 Fonte: CoinGecko + OKX | Atualizado: [TIMESTAMP]
+```
 
 ---
 
-## REGRAS DE OURO — Para todo e qualquer comando
+## EXEMPLO 4 — Comando `.macro`
 
-1. **web_fetch SEMPRE antes de responder** — nunca use dados de memória
-2. **Calcule Black-Scholes inline** — nunca peça para o usuário rodar um script
-3. **UMA recomendação, não 4 cenários paralelos** — decida pelos scores
-4. **Mencione fonte e timestamp** — ex: "✅ Dados via CoinGecko | 11/05/2026 09:30"
-5. **NUNCA tente shell, python3, curl, localhost** — todos bloqueados pelo ZeroClaw
-6. **NUNCA use `src.` em paths** — o ZeroClaw não tem estrutura de módulos Python
+**Trigger**: usuário digita `.macro` ou "Selic hoje" ou "dólar hoje"
+
+**Workflow obrigatório**:
+```
+Step 1: web_fetch https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json (Selic)
+Step 2: web_fetch https://economia.awesomeapi.com.br/json/last/USD-BRL (USD/BRL)
+  → Se rate-limited: fallback para https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/1?formato=json
+Step 3: web_fetch https://api.alternative.me/fng/ (Fear & Greed)
+Step 4: web_fetch https://api.coingecko.com/api/v3/global (dominância BTC)
+```
+
+**Cálculos**:
+```python
+selic_anual = float(dados_bcb[0]["valor"])
+selic_diaria = (1 + selic_anual/100)**(1/252) - 1
+
+# Regime de juros
+if selic_anual > 12: regime = "CONTRACIONISTA"
+elif selic_anual > 8: regime = "NEUTRO"
+else: regime = "EXPANSIONISTA"
+```
+
+**Output canônico**:
+```
+🌎 MACRO BRASIL — [DATA]
+
+💵 USD/BRL: R$ X,XXXX | Δ: +X,X%
+📈 Selic: XX,XX% a.a. | Diária: X,XXXX%
+   Regime: CONTRACIONISTA/NEUTRO/EXPANSIONISTA
+
+😨 Fear & Greed: XX/100 (GREED/FEAR)
+🔶 BTC Dom: XX,X%
+
+Risk Sentiment: RISK-ON/RISK-OFF/NEUTRO
+→ [Implicação para B3 e Crypto]
+
+📌 Fonte: BCB + AwesomeAPI + Alternative.me | [TIMESTAMP]
+```
+
+---
+
+## EXEMPLO 5 — Comando `.resumo`
+
+**Trigger**: usuário digita `.resumo`
+
+**Workflow**: executa TODOS os fetches de `.macro` + `.cripto` em sequência
+
+**Output canônico**:
+```
+📋 RESUMO JOHN GALT — [DATA HORA]
+
+══════════════════════════════
+🌎 MACRO
+Selic: XX,XX% | USD/BRL: X,XXXX
+Regime: [CONTRACIONISTA/NEUTRO/EXPANSIONISTA]
+
+══════════════════════════════
+🔷 CRYPTO
+BTC: $XX.XXX (+X,X%) | ETH: $X.XXX (+X,X%)
+FNG: XX | BTC Dom: XX%
+
+══════════════════════════════
+📊 B3 DESTAQUES
+[Top movers do dia se disponível via BRAPI]
+
+══════════════════════════════
+📌 Fonte: BCB + CoinGecko + BRAPI | [TIMESTAMP]
+```
+
+---
+
+## EXEMPLO 6 — Comando `.estruturas TICKER`
+
+**Trigger**: usuário digita `.estruturas PETR4` ou `.estruturas BTC`
+
+**Workflow**:
+```
+Step 1: Identifica se é B3 (BRAPI) ou Crypto (OKX)
+Step 2 (B3): web_fetch https://brapi.dev/api/quote/TICKER/options?token={BRAPI_TOKEN}
+Step 2 (Crypto): web_fetch https://www.okx.com/api/v5/market/tickers?instType=OPTION&uly=BTC-USD
+Step 3: Filtra por liquidez (OI >= 500, volume >= 100)
+Step 4: Calcula estruturas com Black-Scholes
+```
+
+**Output canônico**:
+```
+🏗️ ESTRUTURAS — [TICKER] | [DATA]
+
+Preço spot: R$/$ XX,XX
+IV implícita: XX% | HV 30d: XX%
+IV/HV: X,XX → [CARA/BARATA/NEUTRA]
+
+ESTRUTURA 1 — Bull Put Spread (moderado)
+Strike vendido: XX | Strike comprado: XX
+Vencimento: [DATA] | Prêmio líquido: R$/$ X,XX
+Max gain: X,XX | Max loss: X,XX | Risk/Reward: X:X
+Prob. lucro: ~XX%
+
+ESTRUTURA 2 — [conforme perfil de risco]
+[...]
+
+📌 Dados de opções: BRAPI/OKX | [TIMESTAMP]
+```
+
+---
+
+## ERROS COMUNS E CORREÇÕES
+
+### Erro 1 — HV da memória
+```
+❌ "SOL tem volatilidade histórica de 85%" (valor memorizado)
+✅ Calcular via CoinGecko market_chart 30 dias:
+   retornos = [ln(P[i]/P[i-1]) for i in 1..29]
+   HV_30d = std(retornos) × √365 × 100
+   Correção permanente: NUNCA use HV sem calcular do market_chart
+```
+
+### Erro 2 — Financial Datasets para B3
+```
+❌ web_fetch financialdatasets.ai para PETR4 (não tem dados B3)
+✅ web_fetch brapi.dev/api/quote/PETR4?token={BRAPI_TOKEN}
+   Regra: Financial Datasets = apenas ações US (NYSE/NASDAQ)
+          BRAPI = ações B3 brasileiras
+```
+
+### Erro 3 — Múltiplos cenários sem fetch
+```
+❌ "Cenário 1: alta. Cenário 2: queda." (sem dados reais)
+✅ Calcular scores reais com dados frescos, depois apresentar 1 estrutura
+   principal baseada nos dados, com sensibilidade de strikes
+```
+
+### Erro 4 — Câmbio sem fallback
+```
+❌ "USD/BRL indisponível" e parar a análise
+✅ Tentativa 1: AwesomeAPI (economia.awesomeapi.com.br)
+   Tentativa 2: BCB série 1 (taxa de câmbio oficial)
+   Sempre reportar qual fonte foi usada
+```
+
+### Erro 5 — Dados sem timestamp
+```
+❌ "BTC está em $105.000"
+✅ "BTC está em $105.000 [fonte: CoinGecko, 15/05/2026 21:30 BRT]"
+   Todo número deve ter fonte e timestamp
+```
