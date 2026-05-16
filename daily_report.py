@@ -407,8 +407,10 @@ def send_telegram(report: str):
     """
     import requests as _requests
 
-    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "8930603673:AAHHbMpUnsNq5KaAcJNsuuvZ1nSaeARHaP0")
+    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1808474055")
+    if not TELEGRAM_TOKEN:
+        raise RuntimeError("TELEGRAM_TOKEN não definido. Defina no .env antes de enviar.")
     
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     

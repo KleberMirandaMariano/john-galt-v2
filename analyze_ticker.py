@@ -12,10 +12,14 @@ Uso (na VPS, o repo fica em /root/.zeroclaw/workspace/):
 """
 
 import sys
+import os
 import json
 import math
 import requests
 from datetime import datetime
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+from cotahist import CotahistClient
 
 BRAPI_TOKEN = "tP2QrzuthuXx4JjrnBqnkd"
 OUTPUT_DIR = "/root/.zeroclaw/workspace"
@@ -43,6 +47,25 @@ def black_scholes(S, K, T, r, sigma, tipo="CALL"):
     greeks = {"delta": round(delta, 4), "gamma": round(gamma, 6),
               "vega": round(vega, 4), "theta": round(theta, 4)}
     return round(price, 4), greeks
+
+def implied_vol(market_price, S, K, T, r, tipo="CALL", tol=1e-5, max_iter=100):
+    """Bisecção para back-solve IV a partir do prêmio de mercado real."""
+    if market_price <= 0 or T <= 0 or S <= 0 or K <= 0:
+        return None
+    lo, hi = 0.001, 10.0
+    for _ in range(max_iter):
+        mid = (lo + hi) / 2
+        price, _ = black_scholes(S, K, T, r, mid, tipo)
+        if price is None:
+            return None
+        diff = price - market_price
+        if abs(diff) < tol:
+            return round(mid, 4)
+        if diff > 0:
+            hi = mid
+        else:
+            lo = mid
+    return round((lo + hi) / 2, 4)
 
 def kelly(p, ganho, perda):
     if perda == 0:
@@ -107,9 +130,16 @@ CRYPTO_IDS = {"BTC": "bitcoin", "ETH": "ethereum", "SOL": "solana",
 
 def analyze_b3(ticker):
     print(f"\n🔍 Buscando dados B3 para {ticker}...")
-    q = fetch_b3(ticker)
+
+    # Fontes em paralelo
+    q     = fetch_b3(ticker)        # BRAPI: fundamentais
     selic = fetch_selic()
-    usd = fetch_usdbrl()
+    usd   = fetch_usdbrl()
+
+    # COTAHIST: spot real + opções reais
+    cotahist = CotahistClient()
+    cota_quote   = cotahist.get_quote(ticker)
+    cota_options = cotahist.get_options(ticker, max_vencimentos=2)
 
     lines = []
     lines.append(f"{'='*60}")
@@ -121,66 +151,114 @@ def analyze_b3(ticker):
         lines.append(f"💱 USD/BRL: R$ {usd:.4f}")
     lines.append("")
 
-    if not q:
-        lines.append(f"❌ Dados não encontrados para {ticker} via BRAPI.")
+    # Preço: COTAHIST tem prioridade (fonte oficial B3), fallback BRAPI
+    if cota_quote:
+        preco = cota_quote["preco"]
+        vol_brl = cota_quote["volume"]
+        lines.append(f"💰 COTAÇÃO (COTAHIST — {cota_quote['data_ref']})")
+        lines.append(f"   Preço:   R$ {preco:.2f}")
+        lines.append(f"   Volume:  R$ {vol_brl/1e6:.1f}M")
+        if q:
+            var = q.get("regularMarketChangePercent", 0)
+            lines.append(f"   Variação: {var:+.2f}% hoje (BRAPI)")
+    elif q:
+        preco = q.get("regularMarketPrice", 0)
+        lines.append(f"💰 COTAÇÃO (BRAPI — sem COTAHIST hoje)")
+        lines.append(f"   Preço:    R$ {preco:.2f}")
+        var = q.get("regularMarketChangePercent", 0)
+        lines.append(f"   Variação: {var:+.2f}% hoje")
+    else:
+        lines.append(f"❌ Dados não encontrados para {ticker}.")
         return "\n".join(lines)
 
-    preco = q.get("regularMarketPrice", 0)
-    var   = q.get("regularMarketChangePercent", 0)
-    pl    = q.get("priceEarnings")
-    lpa   = q.get("earningsPerShare")
-    vpa   = q.get("bookValue")
-    dy    = q.get("dividendYield")
-    mcap  = q.get("marketCap")
-    nome  = q.get("longName", ticker)
-
-    lines.append(f"🏢 {nome}")
-    lines.append(f"")
-    lines.append(f"💰 COTAÇÃO")
-    lines.append(f"   Preço:    R$ {preco:.2f}")
-    lines.append(f"   Variação: {var:+.2f}% hoje")
-    if mcap:
-        lines.append(f"   Market Cap: R$ {mcap/1e9:.2f}B")
+    if q:
+        mcap = q.get("marketCap")
+        if mcap:
+            lines.append(f"   Market Cap: R$ {mcap/1e9:.2f}B")
     lines.append("")
 
-    lines.append(f"📈 FUNDAMENTALISTA")
-    if pl:
-        lines.append(f"   P/L:  {pl:.1f}x")
-    if lpa:
-        lines.append(f"   LPA:  R$ {lpa:.4f}")
-    if vpa:
-        lines.append(f"   VPA:  R$ {vpa:.2f}")
-        pvpa = preco / vpa if vpa != 0 else None
-        if pvpa:
-            lines.append(f"   P/VPA: {pvpa:.2f}x")
-    if dy:
-        lines.append(f"   DY:   {dy:.2f}%")
+    # Fundamentais: BRAPI
+    if q:
+        pl  = q.get("priceEarnings")
+        lpa = q.get("earningsPerShare")
+        vpa = q.get("bookValue")
+        dy  = q.get("dividendYield")
+        nome = q.get("longName", ticker)
+        lines.append(f"🏢 {nome}")
+        lines.append(f"📈 FUNDAMENTALISTA (BRAPI)")
+        if pl:  lines.append(f"   P/L:  {pl:.1f}x")
+        if lpa: lines.append(f"   LPA:  R$ {lpa:.4f}")
+        if vpa:
+            lines.append(f"   VPA:  R$ {vpa:.2f}")
+            pvpa = preco / vpa if vpa else None
+            if pvpa: lines.append(f"   P/VPA: {pvpa:.2f}x")
+        if dy:  lines.append(f"   DY:   {dy:.2f}%")
+        g = graham(lpa, vpa) if lpa and vpa else None
+        if g:
+            upside = (g / preco - 1) * 100
+            lines.append(f"   Graham: R$ {g:.2f} (upside: {upside:+.1f}%)")
+        lines.append("")
 
-    g = graham(lpa, vpa) if lpa and vpa else None
-    if g:
-        upside = (g / preco - 1) * 100
-        lines.append(f"   Graham: R$ {g:.2f} (upside: {upside:+.1f}%)")
-    lines.append("")
+    # Opções: COTAHIST (reais) ou Black-Scholes estimado (fallback)
+    r_anual = selic / 100
+    T_base  = 30 / 365
 
-    lines.append(f"📊 ANÁLISE DE OPÇÕES (Black-Scholes)")
-    r_diario = (selic / 100) / 252
-    sigma_est = 0.45
-    dte = 30
-    T = dte / 365
-    K_atm = round(preco, 2)
+    if cota_options:
+        lines.append(f"📊 OPÇÕES REAIS B3 (COTAHIST — {cotahist._date_ref})")
+        lines.append(f"   Spot de referência: R$ {preco:.2f} | Selic: {selic:.2f}%")
+        lines.append("")
 
-    call_price, call_greeks = black_scholes(preco, K_atm, T, r_diario * 252, sigma_est, "CALL")
-    put_price,  put_greeks  = black_scholes(preco, K_atm, T, r_diario * 252, sigma_est, "PUT")
+        # Agrupar por tipo e vencimento
+        from itertools import groupby
+        opts_sorted = sorted(cota_options, key=lambda x: (x["tipo"], x["vencimento"], x["strike"]))
+        for tipo, grupo_tipo in groupby(opts_sorted, key=lambda x: x["tipo"]):
+            for venc, grupo_venc in groupby(grupo_tipo, key=lambda x: x["vencimento"]):
+                opts_venc = list(grupo_venc)
+                # Filtrar strikes próximos ao ATM (±30%)
+                atm_opts = [o for o in opts_venc
+                            if 0.70 * preco <= o["strike"] <= 1.30 * preco][:8]
+                if not atm_opts:
+                    atm_opts = opts_venc[:5]
 
-    lines.append(f"   Parâmetros: Spot={preco:.2f} | Strike ATM={K_atm:.2f} | DTE={dte}d")
-    lines.append(f"   IV estimada: {sigma_est*100:.0f}% | Selic: {selic:.2f}%")
-    if call_price:
-        lines.append(f"   Call ATM: R$ {call_price:.4f} | Δ={call_greeks['delta']} θ={call_greeks['theta']}")
-    if put_price:
-        lines.append(f"   Put  ATM: R$ {put_price:.4f} | Δ={put_greeks['delta']} θ={put_greeks['theta']}")
+                # Calcular DTE
+                try:
+                    dte_days = (datetime.strptime(venc, "%Y-%m-%d") - datetime.now()).days
+                except Exception:
+                    dte_days = 30
+                T = max(dte_days, 1) / 365
+
+                lines.append(f"   {tipo}S — venc {venc} ({dte_days}d)")
+                lines.append(f"   {'Strike':>8}  {'Prêmio':>8}  {'IV impl':>8}  {'Volume':>10}  {'Δ':>7}")
+                lines.append(f"   {'-'*52}")
+                for o in atm_opts:
+                    iv = implied_vol(o["preco"], preco, o["strike"], T, r_anual, tipo)
+                    _, greeks = black_scholes(preco, o["strike"], T, r_anual, iv or 0.45, tipo)
+                    delta_str = f"{greeks['delta']:+.3f}" if greeks else "  —  "
+                    iv_str    = f"{iv*100:.1f}%" if iv else "  —  "
+                    atm_mark  = " ←ATM" if abs(o["strike"] - preco) / preco < 0.02 else ""
+                    lines.append(
+                        f"   R${o['strike']:>7.2f}  R${o['preco']:>6.4f}  {iv_str:>7}  "
+                        f"R${o['volume']/1e3:>7.0f}K  {delta_str}{atm_mark}"
+                    )
+                lines.append("")
+
+    else:
+        # Fallback: Black-Scholes com IV estimada
+        lines.append(f"📊 OPÇÕES ESTIMADAS (Black-Scholes — sem COTAHIST)")
+        sigma_est = 0.45
+        T = T_base
+        K_atm = round(preco, 2)
+        call_price, call_greeks = black_scholes(preco, K_atm, T, r_anual, sigma_est, "CALL")
+        put_price,  put_greeks  = black_scholes(preco, K_atm, T, r_anual, sigma_est, "PUT")
+        lines.append(f"   Parâmetros: Spot={preco:.2f} | Strike ATM={K_atm:.2f} | DTE=30d")
+        lines.append(f"   IV estimada: {sigma_est*100:.0f}% | Selic: {selic:.2f}%")
+        if call_price:
+            lines.append(f"   Call ATM: R$ {call_price:.4f} | Δ={call_greeks['delta']} θ={call_greeks['theta']}")
+        if put_price:
+            lines.append(f"   Put  ATM: R$ {put_price:.4f} | Δ={put_greeks['delta']} θ={put_greeks['theta']}")
+        lines.append("")
 
     f_full, f_cons = kelly(0.55, 0.10, 0.05)
-    lines.append(f"")
     lines.append(f"🎯 KELLY CRITERION")
     lines.append(f"   f* = {f_full:.2%} | Conservador (1/4): {f_cons:.2%}")
     lines.append(f"   Máx capital: 2% (alto risco) | 5% (risco limitado)")
