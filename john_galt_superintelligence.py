@@ -20,6 +20,7 @@ import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from latency_tracker import LatencyTracker
+from agent_swarm_a2a import AgentSwarmA2A
 
 from agent_swarm_analyzer import AgentSwarmAnalyzer
 from reflection_engine import ReflectionEngine
@@ -29,16 +30,18 @@ from auto_validator import AutoValidator
 class JohnGaltSuperIntelligence:
     """
     Sistema de Superinteligência Fase 1
-    
+
     Características:
-    - Busca paralela de dados (5x mais rápido)
+    - Agent Swarm A2A: agentes se comunicam via pub/sub e req/reply durante execução
+    - Latência instrumentada por step com P50/P95 histórico
     - Autocrítica e refinamento (até 3 iterações)
     - Validação automática de qualidade
-    - Aprendizado de erros (futuro)
     """
-    
-    def __init__(self):
-        self.swarm = AgentSwarmAnalyzer()
+
+    def __init__(self, use_a2a: bool = True):
+        # use_a2a=True → AgentSwarmA2A (A2A); False → AgentSwarmAnalyzer original
+        self.swarm = AgentSwarmA2A() if use_a2a else AgentSwarmAnalyzer()
+        self.use_a2a = use_a2a
         self.reflection = ReflectionEngine()
         self.validator = AutoValidator()
     
@@ -159,6 +162,8 @@ class JohnGaltSuperIntelligence:
             print("❌ ANALYSIS REJECTED - Fix errors before sending")
         print("="*70 + "\n")
 
+        a2a_log = swarm_result.get("message_log", []) if self.use_a2a else []
+
         return {
             "ticker": ticker,
             "market": market,
@@ -176,6 +181,13 @@ class JohnGaltSuperIntelligence:
                 "steps": tracker.steps,
                 "total_s": tracker.total,
                 "regressions": regressions,
+            },
+            "a2a": {
+                "enabled": self.use_a2a,
+                "messages": len(a2a_log),
+                "log": a2a_log,
+                "vol_regime": data_sources.get("vol_regime"),
+                "chain_depth": data_sources.get("chain_depth"),
             },
             "approved": validation["valid"]
         }
