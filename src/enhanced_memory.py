@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from collections import defaultdict
 import hashlib
+import math
 
 
 class EnhancedMemory:
@@ -39,10 +40,11 @@ class EnhancedMemory:
         self.episodic_path = os.path.join(memory_dir, "episodic.jsonl")
         self.semantic_path = os.path.join(memory_dir, "semantic.json")
         self.procedural_path = os.path.join(memory_dir, "procedural.json")
-        
+        self.vectors_path = os.path.join(memory_dir, "vectors.jsonl")
+
         # Criar diretório se não existir
         os.makedirs(memory_dir, exist_ok=True)
-        
+
         # Carregar memórias
         self.semantic = self._load_semantic()
         self.procedural = self._load_procedural()
@@ -87,14 +89,18 @@ class EnhancedMemory:
         # Append ao arquivo JSONL
         with open(self.episodic_path, 'a') as f:
             f.write(json.dumps(episode) + '\n')
-        
+
+        # Indexar vetor para busca semântica
+        vector = self._build_vector(episode)
+        self._index_episode_vector(episode_id, vector)
+
         # Atualizar memória semântica
         self._update_semantic_from_episode(episode)
-        
+
         # Atualizar memória procedural se foi bem-sucedido
         if result.get('success', False):
             self._update_procedural_from_episode(episode)
-        
+
         return episode_id
     
     def retrieve_similar_episodes(
@@ -370,6 +376,182 @@ class EnhancedMemory:
         return best_practices
     
     # =================================================================
+    # BUSCA VETORIAL: SIMILARIDADE SEMÂNTICA
+    # =================================================================
+
+    def _build_vector(self, episode: Dict) -> Dict[str, float]:
+        """
+        Constrói vetor TF esparso a partir do conteúdo de um episódio.
+
+        Campos utilizados (com pesos):
+        - ticker (×3), analysis_type (×2): identidade do episódio
+        - chaves e valores textuais de data/result/metadata
+        - buckets numéricos (iv_high, price_low, etc.)
+        """
+        tokens: List[str] = []
+
+        tokens.extend([episode.get("ticker", "").lower()] * 3)
+        tokens.extend([episode.get("type", "").lower()] * 2)
+
+        def _tokenize_dict(d: Dict, depth: int = 0):
+            if depth > 2:
+                return
+            for key, val in d.items():
+                key_tok = key.lower().replace("-", "_")
+                tokens.append(key_tok)
+                if isinstance(val, str):
+                    tokens.extend(val.lower().split())
+                elif isinstance(val, (int, float)) and val != 0:
+                    bucket = "high" if val > 0.5 else "low"
+                    tokens.append(f"{key_tok}_{bucket}")
+                elif isinstance(val, list):
+                    for item in val:
+                        if isinstance(item, str):
+                            tokens.extend(item.lower().split())
+                elif isinstance(val, dict):
+                    _tokenize_dict(val, depth + 1)
+
+        _tokenize_dict(episode.get("data", {}))
+        _tokenize_dict(episode.get("result", {}))
+        _tokenize_dict(episode.get("metadata", {}))
+
+        # Normalizar tokens: manter apenas alfanuméricos ≥ 2 chars
+        clean: List[str] = []
+        for t in tokens:
+            t = "".join(c for c in t if c.isalnum() or c == "_")
+            if len(t) >= 2:
+                clean.append(t)
+
+        # Term frequency normalizado
+        tf: Dict[str, float] = {}
+        for t in clean:
+            tf[t] = tf.get(t, 0) + 1
+        total = sum(tf.values())
+        if total:
+            tf = {k: v / total for k, v in tf.items()}
+
+        return tf
+
+    def _cosine_similarity(
+        self, v1: Dict[str, float], v2: Dict[str, float]
+    ) -> float:
+        """Similaridade coseno entre dois vetores TF esparsos."""
+        common = set(v1) & set(v2)
+        if not common:
+            return 0.0
+        dot = sum(v1[k] * v2[k] for k in common)
+        norm1 = math.sqrt(sum(x * x for x in v1.values()))
+        norm2 = math.sqrt(sum(x * x for x in v2.values()))
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+        return dot / (norm1 * norm2)
+
+    def _query_to_vector(
+        self,
+        query: str,
+        ticker: Optional[str] = None,
+        analysis_type: Optional[str] = None,
+    ) -> Dict[str, float]:
+        """Converte texto livre + campos opcionais em vetor TF."""
+        tokens: List[str] = []
+
+        for word in query.lower().split():
+            word = "".join(c for c in word if c.isalnum() or c == "_")
+            if len(word) >= 2:
+                tokens.append(word)
+
+        if ticker:
+            tokens.extend([ticker.lower()] * 3)
+        if analysis_type:
+            tokens.extend([analysis_type.lower()] * 2)
+
+        tf: Dict[str, float] = {}
+        for t in tokens:
+            tf[t] = tf.get(t, 0) + 1
+        total = sum(tf.values())
+        if total:
+            tf = {k: v / total for k, v in tf.items()}
+        return tf
+
+    def _index_episode_vector(self, episode_id: str, vector: Dict[str, float]):
+        """Persiste o vetor do episódio em vectors.jsonl."""
+        record = {"episode_id": episode_id, "vector": vector}
+        with open(self.vectors_path, "a") as f:
+            f.write(json.dumps(record) + "\n")
+
+    def search_by_query(
+        self,
+        query: str,
+        ticker: Optional[str] = None,
+        analysis_type: Optional[str] = None,
+        top_k: int = 5,
+        min_similarity: float = 0.1,
+    ) -> List[Dict]:
+        """
+        Busca episódios semanticamente similares à query.
+
+        Difere de retrieve_similar_episodes: não filtra por ticker/tipo exatos —
+        encontra o que for mais parecido pelo conteúdo, ideal para queries livres.
+
+        Args:
+            query: Texto livre (ex: "SOL opções bull spread IV alto")
+            ticker: Peso adicional para um ticker específico (opcional)
+            analysis_type: Peso adicional para tipo (opcional)
+            top_k: Máximo de episódios retornados
+            min_similarity: Similaridade mínima para incluir (0-1)
+
+        Returns:
+            Lista de dicts com episódio + "similarity" score, ordenada desc.
+        """
+        if not os.path.exists(self.vectors_path):
+            return []
+
+        q_vec = self._query_to_vector(query, ticker, analysis_type)
+        if not q_vec:
+            return []
+
+        # Carregar vetores e calcular similaridades
+        scored: List[Tuple[str, float]] = []
+        with open(self.vectors_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                    sim = self._cosine_similarity(q_vec, rec["vector"])
+                    if sim >= min_similarity:
+                        scored.append((rec["episode_id"], sim))
+                except (json.JSONDecodeError, KeyError):
+                    continue
+
+        if not scored:
+            return []
+
+        # Top-K por similaridade
+        scored.sort(key=lambda x: x[1], reverse=True)
+        top_ids = {eid: sim for eid, sim in scored[:top_k]}
+
+        # Recuperar episódios completos do JSONL episódico
+        results: List[Dict] = []
+        if os.path.exists(self.episodic_path):
+            with open(self.episodic_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        ep = json.loads(line)
+                        if ep["id"] in top_ids:
+                            ep["similarity"] = round(top_ids[ep["id"]], 4)
+                            results.append(ep)
+                    except (json.JSONDecodeError, KeyError):
+                        continue
+
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        return results
+
+    # =================================================================
     # UTILIDADES
     # =================================================================
     
@@ -386,16 +568,25 @@ class EnhancedMemory:
         Returns:
             Dict com estatísticas gerais
         """
-        # Contar episódios
+        # Contar episódios e vetores
         episode_count = 0
         if os.path.exists(self.episodic_path):
-            with open(self.episodic_path, 'r') as f:
+            with open(self.episodic_path) as f:
                 episode_count = sum(1 for _ in f)
-        
+
+        vector_count = 0
+        if os.path.exists(self.vectors_path):
+            with open(self.vectors_path) as f:
+                vector_count = sum(1 for _ in f)
+
         return {
             "episodic": {
                 "total_episodes": episode_count,
-                "file": self.episodic_path
+                "file": self.episodic_path,
+            },
+            "vector_index": {
+                "indexed_episodes": vector_count,
+                "file": self.vectors_path,
             },
             "semantic": {
                 "tickers_tracked": len(self.semantic.get("tickers", {})),
