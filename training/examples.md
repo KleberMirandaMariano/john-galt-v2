@@ -192,33 +192,70 @@ Risk Sentiment: RISK-ON/RISK-OFF/NEUTRO
 
 ---
 
-## EXEMPLO 5 — Comando `.resumo`
+## EXEMPLO 5 — Comando `.resumo` / `.panorama`
 
-**Trigger**: usuário digita `.resumo`
+**Trigger**: usuário digita `.resumo`, `.panorama`, ou "panorama do dia"
 
-**Workflow**: executa TODOS os fetches de `.macro` + `.cripto` em sequência
-
-**Output canônico**:
+**Workflow obrigatório**:
 ```
-📋 RESUMO JOHN GALT — [DATA HORA]
-
-══════════════════════════════
-🌎 MACRO
-Selic: XX,XX% | USD/BRL: X,XXXX
-Regime: [CONTRACIONISTA/NEUTRO/EXPANSIONISTA]
-
-══════════════════════════════
-🔷 CRYPTO
-BTC: $XX.XXX (+X,X%) | ETH: $X.XXX (+X,X%)
-FNG: XX | BTC Dom: XX%
-
-══════════════════════════════
-📊 B3 DESTAQUES
-[Top movers do dia se disponível via BRAPI]
-
-══════════════════════════════
-📌 Fonte: BCB + CoinGecko + BRAPI | [TIMESTAMP]
+Step 1: web_fetch CoinGecko /simple/price (BTC, ETH, SOL — USD e BRL)
+Step 2: web_fetch CoinGecko /global (dominância BTC)
+Step 3: web_fetch Alternative.me /fng/ (Fear & Greed)
+Step 4: web_fetch BCB /bcdata.sgs.432 (Selic)
+Step 5: web_fetch AwesomeAPI /USD-BRL (câmbio)
 ```
+
+**Output canônico** ✅ APROVADO 18/05/2026 — formato validado em produção:
+```
+📊 PANORAMA DO DIA — DD/MM/AAAA
+
+---
+
+💰 CRIPTOMOEDAS
+
+| Ativo | Preço USD | Variação 24h | Preço BRL |
+|-------|-----------|--------------|-----------|
+| ₿ BTC | $XX.XXX   | +X,XX%       | R$ XXX.XXX |
+| ◎ ETH | $X.XXX,XX | -X,XX%       | R$ XX.XXX,XX |
+| ◉ SOL | $XX,XX    | -X,XX%       | R$ XXX,XX |
+
+🌐 Dominância BTC: XX,X% ([forte/fraca] — [interpretação])
+
+---
+
+😨 SENTIMENTO & MACRO
+
+| Métrica     | Valor          | Sinal          |
+|-------------|----------------|----------------|
+| Fear & Greed | XX/100        | [EMOJI] [LABEL] |
+| USD/BRL     | R$ X,XXXX (+X%) | [tendência]   |
+| Selic       | XX,XX% a.a.   | [Elevado/Neutro] |
+
+⚠️ Fear & Greed em XX = [LABEL] ([interpretação histórica]).
+
+---
+
+🎯 CONTEXTO RELEVANTE PARA HOJE
+
+✅ [Status evento macro] (próximo [EVENTO]: [DATA])
+✅ Selic [XX%] → [implicação para risco]
+✅ BTC dominância [XX%] → [implicação risk-on/off]
+✅ [Label FNG] → [implicação contrária ou de cautela]
+
+---
+
+💡 AÇÃO RECOMENDADA
+
+[2-3 frases acionáveis combinando FNG + Selic + Dom + Evento]
+
+Quer análise detalhada de algum ativo específico? (COGN3, PETR4, VALE3, BTC, SOL, etc.)
+```
+
+**Diferencial obrigatório vs. formato antigo:**
+- Tabela de preços com coluna BRL (não só USD)
+- Seção de contexto com checklist de eventos macro (FOMC, COPOM, CPI)
+- Interpretação histórica do FNG (não só o número)
+- Recomendação acionável no final com call-to-action
 
 ---
 
@@ -254,6 +291,68 @@ ESTRUTURA 2 — [conforme perfil de risco]
 
 📌 Dados de opções: BRAPI/OKX | [TIMESTAMP]
 ```
+
+---
+
+## EXEMPLO 7 — Output Real Aprovado em Produção
+
+**Data**: 18/05/2026 | **Comando**: panorama do dia | **Avaliação**: ✅ EXCELENTE
+
+Este é um output real gerado pelo John Galt e aprovado pelo usuário como referência canônica.
+Use como benchmark de qualidade para o formato `.resumo` / `.panorama`.
+
+```
+📊 PANORAMA DO DIA — 18/05/2026
+
+---
+
+💰 CRIPTOMOEDAS
+
+| Ativo | Preço USD | Variação 24h | Preço BRL |
+|-------|-----------|--------------|-----------|
+| ₿ BTC | $77.247   | -1,44%       | R$ 390.745 |
+| ◎ ETH | $2.132,93 | -2,66%       | R$ 10.789,22 |
+| ◉ SOL | $84,93    | -2,24%       | R$ 429,61 |
+
+🌐 Dominância BTC: 58,30% (forte, mercado em consolidação)
+
+---
+
+😨 SENTIMENTO & MACRO
+
+| Métrica      | Valor       | Sinal    |
+|--------------|-------------|----------|
+| Fear & Greed | 28/100      | 🔴 MEDO  |
+| Selic (ref)  | 14,50% a.a. | Elevado  |
+
+⚠️ Fear & Greed em 28 = MEDO (oportunidade contrária histórica). Nível típico de
+acumulação — mercado precificando risco excessivo.
+
+---
+
+🎯 CONTEXTO RELEVANTE PARA HOJE
+
+✅ Sem eventos macro críticos até segunda (próximo FOMC 18/06)
+✅ Selic elevada (14,50%) → custo de oportunidade alto em risco
+✅ BTC dominância forte (58%) → risk-off, capital concentrado em BTC
+✅ Medo extremo → historicamente bom sinal contrário para acumulação
+
+---
+
+💡 AÇÃO RECOMENDADA
+
+Com Fear & Greed = 28 e sem evento macro próximo, este é um ponto de entrada
+potencial em cripto para estratégias de longo prazo. Liquidez B3 segue normal.
+
+Quer análise detalhada de algum ativo específico? (COGN3, PETR4, VALE3, BTC, SOL, etc.)
+```
+
+**O que tornou essa resposta excelente:**
+1. Tabela de preços com BRL — elimina necessidade de conversão mental
+2. Checagem explícita de evento macro com data do próximo FOMC
+3. FNG com interpretação histórica ("oportunidade contrária"), não só o número
+4. Recomendação direta com justificativa baseada nos dados buscados
+5. Call-to-action claro para aprofundar a análise
 
 ---
 
