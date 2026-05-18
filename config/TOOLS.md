@@ -13,6 +13,16 @@ web_fetch("https://brapi.dev/api/quote/TICKER?token={BRAPI_TOKEN}")
 → results[0].earningsPerShare / marketCap / fiftyTwoWeekHigh / fiftyTwoWeekLow
 ```
 
+### Fundamentus — Fundamentalistas B3 (sem auth)
+```
+web_fetch("https://www.fundamentus.com.br/detalhes.php?papel={TICKER}")
+→ HTML com tabelas de indicadores — extrair por rótulo adjacente
+Campos: P/L, P/VP, EV/EBITDA, Div.Yield, ROE, ROIC, Marg.Líquida,
+        Marg.EBIT, Dív.Bruta/Patrim., Líq. Corr., Cresc. Rec.5a
+```
+Parsing: remover `.` (milhar) e substituir `,` por `.` antes de converter para float.
+Ex: `"1.234,56%"` → `1234.56` → `/100` = `12.3456`
+
 ### BRAPI — Liquidez de Opções B3
 ```
 web_fetch("https://brapi.dev/api/quote/PETR4/options?token={BRAPI_TOKEN}")
