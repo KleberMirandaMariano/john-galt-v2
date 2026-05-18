@@ -205,6 +205,7 @@ allowed_domains = [
     "api.bcb.gov.br",
     "api.financialdatasets.ai",
     "api.stlouisfed.org",
+    "www.fundamentus.com.br",
     "localhost",
 ]
 max_response_size = 1000000
