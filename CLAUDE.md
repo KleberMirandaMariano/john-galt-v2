@@ -91,6 +91,7 @@ Each subdirectory contains a `SKILL.md` with `name`, `description` (trigger phra
 | `financial-datasets-live` | NYSE/NASDAQ fundamentals (not B3) |
 | `earnings-calendar` | Upcoming macro events gate |
 | `macro-snapshot` | Global macro snapshot |
+| `macro-global` | US macro via FRED: Fed Funds + Treasury yields (2Y/10Y) + DXY |
 
 For any recommendation (`decision-synthesis` output), the `risk-gating` verdict acts as an override: if blocked, recommendation downgrades one level.
 
@@ -128,6 +129,7 @@ Backtesting engine bundled in this repo (separate from the VPS-installed version
 |---|---|---|
 | B3 quotes | `brapi.dev/api/quote/{TICKER}` | `BRAPI_TOKEN` in SECRETS.md (not versioned) |
 | B3 options chain (real) | COTAHIST via `src/cotahist.py` | None (public B3 file) |
+| US macro (Fed/yields/DXY) | `api.stlouisfed.org/fred/series/observations` | `FRED_API_KEY` in SECRETS.md (free at fred.stlouisfed.org) |
 | Crypto spot/history | `api.coingecko.com` | None |
 | Crypto options/IV | `www.okx.com/api/v5/public/opt-summary?instFamily=BTC-USD` | None |
 | Fear & Greed | `api.alternative.me/fng/` | None |

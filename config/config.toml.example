@@ -204,6 +204,7 @@ allowed_domains = [
     "www.okx.com",
     "api.bcb.gov.br",
     "api.financialdatasets.ai",
+    "api.stlouisfed.org",
     "localhost",
 ]
 max_response_size = 1000000
