@@ -67,6 +67,31 @@ web_fetch("https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=A
 → snapshot.price_to_earnings_ratio / return_on_equity / net_margin / debt_to_equity
 ```
 
+### FRED — Macro EUA (requer FRED_API_KEY em SECRETS.md)
+```
+# Fed Funds Rate (diário)
+web_fetch("https://api.stlouisfed.org/fred/series/observations?series_id=DFF&api_key={FRED_API_KEY}&file_type=json&sort_order=desc&limit=2")
+→ observations[0].value   # % a.a. (use [1] se [0].value == ".")
+→ observations[0].date    # data YYYY-MM-DD
+
+# Treasury Yield 10 anos (diário)
+web_fetch("https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key={FRED_API_KEY}&file_type=json&sort_order=desc&limit=2")
+→ observations[0].value
+
+# Treasury Yield 2 anos (diário)
+web_fetch("https://api.stlouisfed.org/fred/series/observations?series_id=DGS2&api_key={FRED_API_KEY}&file_type=json&sort_order=desc&limit=2")
+→ observations[0].value
+
+# Spread curva 10Y-2Y (diário)
+web_fetch("https://api.stlouisfed.org/fred/series/observations?series_id=T10Y2Y&api_key={FRED_API_KEY}&file_type=json&sort_order=desc&limit=2")
+→ observations[0].value   # pp (negativo = curva invertida)
+
+# Índice do Dólar — broad (semanal, proxy DXY)
+web_fetch("https://api.stlouisfed.org/fred/series/observations?series_id=DTWEXBGS&api_key={FRED_API_KEY}&file_type=json&sort_order=desc&limit=2")
+→ observations[0].value   # base 2006=100
+```
+Obtenha FRED_API_KEY gratuita em: https://fred.stlouisfed.org/docs/api/api_key.html
+
 ---
 
 ## Fórmulas Inline
