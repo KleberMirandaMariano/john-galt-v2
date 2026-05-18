@@ -40,6 +40,8 @@ python3 scripts/validate_options_b3.py PETR4 49.08 52.00 30 0.1375 0.45 PETRF52 
 # BTC correlations
 python3 btc_vix_correlation.py 90
 python3 btc_spx_correlation.py 90
+python3 btc_dxy_correlation.py 90
+python3 btc_gold_correlation.py 90
 
 # Phase integration tests
 python3 test_phase1_complete.py
@@ -95,7 +97,7 @@ For any recommendation (`decision-synthesis` output), the `risk-gating` verdict 
 ### Python Utilities (run locally on VPS, not in ZeroClaw agent)
 
 **Phase 1 — Superintelligence Pipeline** (`john_galt_superintelligence.py`):
-Orchestrates: `AgentSwarmAnalyzer` (parallel async data fetch) → initial analysis → `ReflectionEngine` (up to 3 self-critique iterations via OpenRouter) → `AutoValidator` (freshness, Greeks ranges, required sections). Entry point for programmatic analysis.
+Orchestrates: `AgentSwarmAnalyzer` or `AgentSwarmA2A` (parallel async data fetch with inter-agent communication) → initial analysis → `ReflectionEngine` (up to 3 self-critique iterations via OpenRouter) → `AutoValidator` (freshness, Greeks ranges, required sections). Entry point for programmatic analysis.
 
 **Phase 2 — Memory** (`src/enhanced_memory.py`):
 Three stores at `/root/.zeroclaw/memory/`: episodic (`episodic.jsonl` — past analyses), semantic (`semantic.json` — accumulated knowledge), procedural (`procedural.json` — successful patterns).
@@ -105,6 +107,14 @@ Auto-extracts reusable code patterns from successful episodes. Stores skills at 
 
 **Phase 4 — Autonomous Learning** (`src/autonomous_learning.py`):
 A/B testing framework, self-improvement curriculum, performance benchmarking, quality degradation detection. State at `/root/.zeroclaw/learning/`.
+
+**`src/agent_bus.py`**: In-process message bus for Agent-to-Agent (A2A) communication. Supports three patterns: pub/sub (`publish`/`subscribe`), direct (`send`), and request/reply (`request`, with timeout). No external dependencies — asyncio only.
+
+**`src/agent_swarm_a2a.py`**: Agent Swarm with real A2A communication (replaces the static parallel execution of `AgentSwarmAnalyzer`). Agents communicate during execution: `market_data_agent` publishes volatility regime → `options_agent` reacts; `options_agent` can request spot price via req/reply; any agent failure broadcasts an alert to `synthesis_agent`.
+
+**`src/cotahist.py`**: Downloads and parses the B3 daily COTAHIST file (fixed-width format, Latin-1 encoding) to extract real spot prices and full PUT/CALL options chains. Replaces the Black-Scholes IV estimate in `analyze_ticker.py` with real market data. Source: `bvmf.bmfbovespa.com.br/InstDados/SerHist/COTAHIST_D{DDMMYYYY}.ZIP`.
+
+**`src/latency_tracker.py`**: Per-step latency instrumentation for the pipeline (context manager, sync/async compatible). Persists P50/P95 metrics to `/root/.zeroclaw/metrics/latency.jsonl` (append-only JSONL).
 
 **`analyze_ticker.py`**: Self-contained quantitative pre-processor. Fetches data from BRAPI (B3) or CoinGecko (crypto), computes Black-Scholes ATM, Greeks, Kelly Criterion, Graham value, and writes output to `/root/.zeroclaw/workspace/{ticker}_output.txt`. The ZeroClaw agent then reads this file with `file_read` rather than recomputing everything via `web_fetch`.
 
@@ -116,7 +126,8 @@ Backtesting engine bundled in this repo (separate from the VPS-installed version
 
 | Asset class | API | Auth |
 |---|---|---|
-| B3 quotes + options | `brapi.dev/api/quote/{TICKER}` | `BRAPI_TOKEN` in SECRETS.md (not versioned) |
+| B3 quotes | `brapi.dev/api/quote/{TICKER}` | `BRAPI_TOKEN` in SECRETS.md (not versioned) |
+| B3 options chain (real) | COTAHIST via `src/cotahist.py` | None (public B3 file) |
 | Crypto spot/history | `api.coingecko.com` | None |
 | Crypto options/IV | `www.okx.com/api/v5/public/opt-summary?instFamily=BTC-USD` | None |
 | Fear & Greed | `api.alternative.me/fng/` | None |
@@ -124,7 +135,8 @@ Backtesting engine bundled in this repo (separate from the VPS-installed version
 | USD/BRL | `economia.awesomeapi.com.br/json/last/USD-BRL` | None |
 | NYSE/NASDAQ fundamentals | `api.financialdatasets.ai` | None (public) |
 
-> Financial Datasets (`financialdatasets.ai`) only works for NYSE/NASDAQ tickers — returns 400 for B3 tickers. Always use BRAPI for Brazilian stocks.
+> Financial Datasets (`financialdatasets.ai`) only works for NYSE/NASDAQ tickers — returns 400 for B3 tickers. Always use BRAPI/COTAHIST for Brazilian stocks.
+> COTAHIST provides real PUT/CALL chains direct from B3; use it instead of Black-Scholes IV estimates for options analysis.
 
 ## Deployment
 
