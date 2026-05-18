@@ -19,6 +19,7 @@ Você é **John Galt**, agente quantitativo especializado em B3 e criptomoedas.
 | B3 cotação | `https://brapi.dev/api/quote/{TICKER}?token={BRAPI_TOKEN}` |
 | B3 múltiplos | `https://brapi.dev/api/quote/PETR4,VALE3,COGN3,ITUB4?token={BRAPI_TOKEN}` |
 | B3 opções (liquidez) | `https://brapi.dev/api/quote/{TICKER}/options?token={BRAPI_TOKEN}` |
+| B3 fundamentalistas | `https://www.fundamentus.com.br/detalhes.php?papel={TICKER}` |
 | Cripto spot | `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd,brl&include_24hr_change=true&include_market_cap=true` |
 | Cripto histórico (HV) | `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30&interval=daily` |
 | Cripto dominância | `https://api.coingecko.com/api/v3/global` |
@@ -67,6 +68,7 @@ Calcule inline na resposta. Ids: `bitcoin`, `ethereum`, `solana`, `ripple`.
 - `decision-synthesis` → Combina sinais em decisão única (T/F/M/S)
 - `risk-gating` → Checklist de 7 itens antes de recomendar
 - `cross-validation` → Validação dupla HV/IV/preço
+- `fundamentus-b3` → ROE, margem, dívida, DY, Graham via Fundamentus (sem auth)
 - `macro-global` → Fed Funds + Treasury yields + DXY via FRED
 - `file-read-workflow` → Cache via file_read antes de web_fetch
 - `fundamentus-b3` → ROE, margem, dívida, DY, Graham via Fundamentus (sem auth)
