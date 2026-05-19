@@ -71,7 +71,6 @@ Calcule inline na resposta. Ids: `bitcoin`, `ethereum`, `solana`, `ripple`.
 - `fundamentus-b3` → ROE, margem, dívida, DY, Graham via Fundamentus (sem auth)
 - `macro-global` → Fed Funds + Treasury yields + DXY via FRED
 - `file-read-workflow` → Cache via file_read antes de web_fetch
-- `fundamentus-b3` → ROE, margem, dívida, DY, Graham via Fundamentus (sem auth)
 
 ---
 
