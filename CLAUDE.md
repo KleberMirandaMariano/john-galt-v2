@@ -144,7 +144,7 @@ Backtesting engine bundled in this repo (separate from the VPS-installed version
 
 ## Deployment
 
-Push to `main` triggers `.github/workflows/deploy-to-vps.yml` which clones the repo to `/tmp/john-galt-ci/`. Manual copy to the VPS workspace (`/root/.zeroclaw/workspace/`) is the current final deployment step.
+Push to `main` triggers `.github/workflows/deploy-to-vps.yml` which deploys automatically to the VPS workspace (`/root/.zeroclaw/workspace/`) — no manual copy needed.
 
 ZeroClaw Telegram bot setup: `zeroclaw onboard --channels-only` (generates and encrypts the bot token in `config.toml`).
 
