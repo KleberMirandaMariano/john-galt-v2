@@ -70,6 +70,7 @@ Calcule inline na resposta. Ids: `bitcoin`, `ethereum`, `solana`, `ripple`.
 - `cross-validation` → Validação dupla HV/IV/preço
 - `fundamentus-b3` → ROE, margem, dívida, DY, Graham via Fundamentus (sem auth)
 - `macro-global` → Fed Funds + Treasury yields + DXY via FRED
+- `bayesian-signals` → P(sucesso|sinais) sequencial + Kelly Bayesiano + regime de mercado
 - `file-read-workflow` → Cache via file_read antes de web_fetch
 
 ---

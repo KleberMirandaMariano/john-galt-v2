@@ -20,6 +20,15 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from cotahist import CotahistClient
+try:
+    from bayesian_signals import (
+        BayesianUpdater, MarketRegime,
+        SIGNALS_B3, SIGNALS_CRIPTO,
+        bayesian_kelly,
+    )
+    _BAYES_OK = True
+except ImportError:
+    _BAYES_OK = False
 
 BRAPI_TOKEN = "tP2QrzuthuXx4JjrnBqnkd"
 OUTPUT_DIR = "/root/.zeroclaw/workspace"
@@ -258,10 +267,63 @@ def analyze_b3(ticker):
             lines.append(f"   Put  ATM: R$ {put_price:.4f} | Δ={put_greeks['delta']} θ={put_greeks['theta']}")
         lines.append("")
 
-    f_full, f_cons = kelly(0.55, 0.10, 0.05)
-    lines.append(f"🎯 KELLY CRITERION")
-    lines.append(f"   f* = {f_full:.2%} | Conservador (1/4): {f_cons:.2%}")
-    lines.append(f"   Máx capital: 2% (alto risco) | 5% (risco limitado)")
+    if _BAYES_OK:
+        updater = BayesianUpdater(prior=0.50)
+        regime  = MarketRegime()
+        applied = []
+
+        if selic >= 12.0:
+            updater.update_from_library("selic_restrictive", SIGNALS_B3)
+            regime.update("selic_restrictive")
+            applied.append("selic_restrictive")
+
+        if q:
+            var_pct = q.get("regularMarketChangePercent", 0) or 0
+            if var_pct > 0:
+                updater.update_from_library("ibov_positive", SIGNALS_B3)
+                regime.update("ibov_positive")
+                applied.append("ibov_positive")
+
+        if cota_options:
+            # Usa IV mediana das opções para estimar IV/HV
+            ivs = []
+            for o in cota_options[:10]:
+                if 0.80 * preco <= o["strike"] <= 1.20 * preco:
+                    T_opt = max((datetime.strptime(o["vencimento"], "%Y-%m-%d") - datetime.now()).days, 1) / 365
+                    iv = implied_vol(o["preco"], preco, o["strike"], T_opt, selic / 100, o["tipo"])
+                    if iv:
+                        ivs.append(iv)
+            if ivs:
+                iv_med = sorted(ivs)[len(ivs) // 2]
+                hv_est = 0.40
+                ratio  = iv_med / hv_est
+                if ratio > 1.2:
+                    updater.update_from_library("iv_hv_high", SIGNALS_B3)
+                    regime.update("iv_hv_high")
+                    applied.append(f"iv_hv_high (IV/HV={ratio:.2f})")
+                elif ratio < 0.8:
+                    updater.update_from_library("iv_hv_low", SIGNALS_B3)
+                    regime.update("iv_hv_low")
+                    applied.append(f"iv_hv_low (IV/HV={ratio:.2f})")
+
+        posterior = updater.posterior
+        f_full, f_quarter, f_capped = bayesian_kelly(posterior, ganho=0.10, perda=0.05, risk_type="defined")
+
+        lines.append(f"🧠 ANÁLISE BAYESIANA")
+        lines.append(f"   Prior: 0.50 → Posterior: {posterior:.1%}")
+        if applied:
+            lines.append(f"   Sinais: {', '.join(applied)}")
+        lines.append(f"   LR acumulado: {updater.cumulative_lr():.2f}×")
+        lines.append(f"   Regime estimado: {regime.dominant().upper()} → {regime.strategy_hint()}")
+        lines.append(f"")
+        lines.append(f"🎯 KELLY BAYESIANO")
+        lines.append(f"   f* = {f_full:.2%} | 1/4 Kelly = {f_quarter:.2%} | Cap aplicado = {f_capped:.2%}")
+        lines.append(f"   Máx capital: 2% (OTM) | 5% (spread RR>2:1)")
+    else:
+        f_full, f_cons = kelly(0.55, 0.10, 0.05)
+        lines.append(f"🎯 KELLY CRITERION")
+        lines.append(f"   f* = {f_full:.2%} | Conservador (1/4): {f_cons:.2%}")
+        lines.append(f"   Máx capital: 2% (alto risco) | 5% (risco limitado)")
     lines.append("")
     lines.append(f"{'='*60}")
 
@@ -340,10 +402,52 @@ def analyze_crypto(ticker):
     else:
         lines.append(f"   IV/HV ≈ 1.0 → vol justa → Bull Call Spread (se alta) / Iron Condor (neutro)")
 
-    f_full, f_cons = kelly(0.55, 0.15, 0.08)
-    lines.append(f"")
-    lines.append(f"   Kelly f*={f_full:.2%} | Conservador: {f_cons:.2%}")
-    lines.append(f"   Máx: 2% capital (alto risco) | 5% (risco limitado)")
+    if _BAYES_OK:
+        updater = BayesianUpdater(prior=0.50)
+        regime  = MarketRegime()
+        applied = []
+
+        if fng_val is not None:
+            if fng_val < 25:
+                updater.update_from_library("fng_extreme_fear", SIGNALS_CRIPTO)
+                regime.update("fng_extreme_fear")
+                applied.append(f"fng_extreme_fear (FNG={fng_val})")
+            elif fng_val > 75:
+                updater.update_from_library("fng_extreme_greed", SIGNALS_CRIPTO)
+                regime.update("fng_extreme_greed")
+                applied.append(f"fng_extreme_greed (FNG={fng_val})")
+            elif 45 <= fng_val <= 55:
+                updater.update_from_library("fng_neutral", SIGNALS_CRIPTO)
+                applied.append(f"fng_neutral (FNG={fng_val})")
+
+        if sigma_est > 0.80:
+            updater.update_from_library("hv_high", SIGNALS_CRIPTO)
+            regime.update("hv_high")
+            applied.append(f"hv_high (HV~{sigma_est*100:.0f}%)")
+        elif sigma_est < 0.40:
+            updater.update_from_library("hv_low", SIGNALS_CRIPTO)
+            regime.update("hv_low")
+            applied.append(f"hv_low (HV~{sigma_est*100:.0f}%)")
+
+        posterior = updater.posterior
+        f_full, f_quarter, f_capped = bayesian_kelly(posterior, ganho=0.15, perda=0.08, risk_type="high")
+
+        lines.append(f"")
+        lines.append(f"🧠 ANÁLISE BAYESIANA")
+        lines.append(f"   Prior: 0.50 → Posterior: {posterior:.1%}")
+        if applied:
+            lines.append(f"   Sinais: {', '.join(applied)}")
+        lines.append(f"   LR acumulado: {updater.cumulative_lr():.2f}×")
+        lines.append(f"   Regime estimado: {regime.dominant().upper()} → {regime.strategy_hint()}")
+        lines.append(f"")
+        lines.append(f"🎯 KELLY BAYESIANO")
+        lines.append(f"   f* = {f_full:.2%} | 1/4 Kelly = {f_quarter:.2%} | Cap = {f_capped:.2%}")
+        lines.append(f"   Máx: 2% capital (OTM) | 5% (spread RR>2:1)")
+    else:
+        f_full, f_cons = kelly(0.55, 0.15, 0.08)
+        lines.append(f"")
+        lines.append(f"   Kelly f*={f_full:.2%} | Conservador: {f_cons:.2%}")
+        lines.append(f"   Máx: 2% capital (alto risco) | 5% (risco limitado)")
     lines.append("")
     lines.append(f"{'='*60}")
 
