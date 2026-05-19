@@ -93,6 +93,7 @@ Each subdirectory contains a `SKILL.md` with `name`, `description` (trigger phra
 | `macro-snapshot` | Global macro snapshot |
 | `fundamentus-b3` | B3 fundamentals via Fundamentus: ROE, margins, debt, DY, Graham value |
 | `macro-global` | US macro via FRED: Fed Funds + Treasury yields (2Y/10Y) + DXY |
+| `bayesian-signals` | Sequential Bayesian P(success\|signals) + Kelly sizing + market regime |
 
 For any recommendation (`decision-synthesis` output), the `risk-gating` verdict acts as an override: if blocked, recommendation downgrades one level.
 
@@ -118,7 +119,9 @@ A/B testing framework, self-improvement curriculum, performance benchmarking, qu
 
 **`src/latency_tracker.py`**: Per-step latency instrumentation for the pipeline (context manager, sync/async compatible). Persists P50/P95 metrics to `/root/.zeroclaw/metrics/latency.jsonl` (append-only JSONL).
 
-**`analyze_ticker.py`**: Self-contained quantitative pre-processor. Fetches data from BRAPI (B3) or CoinGecko (crypto), computes Black-Scholes ATM, Greeks, Kelly Criterion, Graham value, and writes output to `/root/.zeroclaw/workspace/{ticker}_output.txt`. The ZeroClaw agent then reads this file with `file_read` rather than recomputing everything via `web_fetch`.
+**`src/bayesian_signals.py`**: Sequential Bayesian signal updater + Kelly sizing. `BayesianUpdater` accumulates P(success|signals) from pre-calibrated likelihoods (`SIGNALS_B3`, `SIGNALS_CRIPTO`). `bayesian_kelly()` converts the posterior into capped Kelly sizing (2% OTM / 5% spread). `MarketRegime` detects trending/reverting/volatile regime via 3-hypothesis Bayes. Integrated into `analyze_ticker.py` and exposed as the `bayesian-signals` skill for the ZeroClaw agent.
+
+**`analyze_ticker.py`**: Self-contained quantitative pre-processor. Fetches data from BRAPI (B3) or CoinGecko (crypto), computes Black-Scholes ATM, Greeks, Bayesian Kelly sizing, Graham value, and writes output to `/root/.zeroclaw/workspace/{ticker}_output.txt`. The ZeroClaw agent then reads this file with `file_read` rather than recomputing everything via `web_fetch`.
 
 ### `b3_trading_signals/` Package
 
