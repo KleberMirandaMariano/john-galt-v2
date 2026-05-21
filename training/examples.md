@@ -396,3 +396,137 @@ Quer análise detalhada de algum ativo específico? (COGN3, PETR4, VALE3, BTC, S
 ✅ "BTC está em $105.000 [fonte: CoinGecko, 15/05/2026 21:30 BRT]"
    Todo número deve ter fonte e timestamp
 ```
+
+---
+
+## EXEMPLO 8 — Output Real Aprovado em Produção
+
+**Data**: 21/05/2026 | **Comando**: `.analise XRP` (cripto spot sem opções) | **Avaliação**: ✅ EXCELENTE
+
+```
+📊 ANÁLISE QUANT — XRP — 21/05/2026
+
+Status: Validada | Recomendação: HOLD | Confiança: 55%
+
+---
+
+💰 PREÇO & PERFORMANCE
+| Métrica | Valor |
+|---------|-------|
+| Spot USD | $1.38 |
+| Spot BRL | R$ 6.93 |
+| 24h | +2.16% |
+| Market Cap | $85.5B |
+| Dominância | 3.19% |
+
+---
+
+📈 MÉTRICAS QUANT
+
+HV 30d Calculada:
+- Retornos diários: 30 pontos de preço
+- σ diária = 1.87% → HV anualizada = 29.7%
+
+| Métrica | Valor | Interpretação |
+|---------|-------|---|
+| HV 30d | 29.7% | volatilidade baixa |
+| IV ATM | N/A | OKX sem série XRP |
+| Z-Score | +0.18 | neutro, preço justo |
+| Corr BTC 60d | ~+0.65 | moderada (XRP tem alpha) |
+
+---
+
+🔍 VALIDAÇÃO
+| Dado | Fonte | Δ | Status |
+|---|---|---|---|
+| Preço | $1.38 (CG) | - | ✅ |
+| HV 30d | 29.7% (calc) | - | ✅ |
+| Market Cap | $85.5B | - | ✅ |
+| Dominância | 3.19% | - | ✅ |
+
+---
+
+🛡️ RISK GATING
+| # | Item | Status |
+|---|------|--------|
+| 1 | Macro ≤3 dias? | ✅ FOMC 18/06 (28 dias) |
+| 2 | Liquidez? | ✅ Volume 24h $1.4B (excelente) |
+| 3 | Drawdown? | ✅ Mês +2.16% (sem drawdown) |
+| 4 | Correlação BTC? | ✅ ~0.65 (moderada, alpha presente) |
+| 5 | Sizing Kelly? | ✅ 2-3% capital máximo |
+| 6 | Horizon? | ✅ Sem vencimento (spot) |
+| 7 | Plano saída? | ⚠️ Definir alvo/stop |
+
+VEREDICTO: APROVADO COM RESSALVA (sem série de opções disponível)
+
+---
+
+📊 SCORES
+| Dimensão | Score | Peso | Contrib |
+|----------|-------|------|---------|
+| Técnico | 5.5/10 | 25% | 1.38 |
+| Fundamental | 6.0/10 | 30% | 1.80 |
+| Macro | 5.5/10 | 20% | 1.10 |
+| Sentiment | 5.0/10 | 25% | 1.25 |
+| Total | | | 5.53/10 |
+
+Alinhamento: 2/4 dimensões → confiança 55% (neutro)
+
+---
+
+🎯 ANÁLISE TÉCNICA
+- Tendência: Lateral, sem força clara
+- Suportes: $1.36-1.38
+- Resistências: $1.50 (topo 30d)
+- Fear & Greed: 29 (FEAR) — oportunidade contrária
+
+---
+
+💡 CENÁRIOS (subordinados à DECISÃO FINAL — não são recomendações alternativas)
+
+Cenário Bull (+15%): Rompimento acima de $1.50 + FOMC dovish
+- Alvo: $1.59 | Probability: 35%
+
+Cenário Neutro (±5%): Consolidação lateral
+- Range: $1.33-$1.50 | Probability: 45%
+
+Cenário Bear (-15%): Rompimento abaixo de $1.36
+- Alvo: $1.17 | Probability: 20%
+
+---
+
+🎯 DECISÃO FINAL
+Ação: HOLD (sem nova posição)
+Entrada: $1.38 (se entrar)
+Stop: $1.30 (-5.8%)
+Alvo: $1.55 (+12.3%)
+Confiança: 55% (esperar confirmação técnica)
+Validade: Indefinida (spot)
+
+---
+
+⚠️ Nota: XRP não tem série de opções no OKX. Para estruturas, considere BTC ou SOL.
+XRP é melhor para acumulação spot em medo extremo (FNG 29 agora).
+```
+
+**O que tornou essa resposta excelente:**
+1. **Z-Score adicionado** (+0.18 = neutro/justo) — métrica quantitativa que justifica HOLD objetivamente
+2. **Cenários com probabilidade** (Bull 35% / Neutro 45% / Bear 20%) usados CORRETAMENTE: quantificam incerteza para chegar ao HOLD, não são recomendações alternativas
+3. **Fallback OKX documentado** — "XRP não tem série no OKX" + redirecionamento para spot + sugestão de BTC/SOL para quem quer opções
+4. **Alpha de correlação** — corr BTC 0.65 (não 0.9+) identificada corretamente como sinal diferenciador
+5. **FNG 29 contextualizado** como oportunidade contrária histórica, não apenas número
+
+**Diferença crítica — cenários corretos vs anti-padrão:**
+```
+❌ ERRADO — cenários como múltiplas recomendações:
+"Cenário 1: compre aqui. Cenário 2: espere. Cenário 3: venda."
+
+✅ CORRETO — cenários quantificam incerteza para UMA decisão:
+Bull 35% / Neutro 45% / Bear 20% → EV calculado → HOLD
+```
+
+**Z-Score — fórmula para uso inline:**
+```
+Z = (preço_atual - media_30d) / desvio_30d
+> +2.0 = sobrecomprado | -2.0 a +2.0 = zona neutra | < -2.0 = oversold
+```
