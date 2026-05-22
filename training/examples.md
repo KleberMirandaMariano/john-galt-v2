@@ -382,12 +382,19 @@ Quer análise detalhada de algum ativo específico? (COGN3, PETR4, VALE3, BTC, S
    principal baseada nos dados, com sensibilidade de strikes
 ```
 
-### Erro 4 — Câmbio sem fallback
+### Erro 4 — Câmbio com fonte instável
 ```
-❌ "USD/BRL indisponível" e parar a análise
-✅ Tentativa 1: AwesomeAPI (economia.awesomeapi.com.br)
-   Tentativa 2: BCB série 1 (taxa de câmbio oficial)
-   Sempre reportar qual fonte foi usada
+❌ web_fetch AwesomeAPI → rate limit constante em produção → "USD/BRL indisponível"
+✅ Fonte primária: BCB PTAX Série 1 (oficial, sem rate limit)
+   web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")
+   → usd_brl = float(result[1]['valor'])
+   → usd_pct = (float(result[1]['valor']) / float(result[0]['valor']) - 1) * 100
+
+   Fallback (BCB falhou):
+   web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=brl")
+   → usd_brl = result['tether']['brl']   # USDT/BRL como proxy
+
+   NUNCA use AwesomeAPI como fonte primária.
 ```
 
 ### Erro 5 — Dados sem timestamp
@@ -530,3 +537,61 @@ Bull 35% / Neutro 45% / Bear 20% → EV calculado → HOLD
 Z = (preço_atual - media_30d) / desvio_30d
 > +2.0 = sobrecomprado | -2.0 a +2.0 = zona neutra | < -2.0 = oversold
 ```
+
+---
+
+## EXEMPLO 9 — Output Real Aprovado em Produção
+
+**Data**: 22/05/2026 | **Comando**: `.macro` | **Avaliação**: ✅ EXCELENTE
+
+```
+🇧🇷 MACRO BRASIL — 22/05/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💹 Juros
+Selic: 14.50% a.a. (RESTRITIVO) — custo de oportunidade elevado
+
+💵 Câmbio
+USD/BRL: Indisponível no momento (rate limit AwesomeAPI)
+⚠️ REAL sob pressão — exportadoras em alerta
+
+🌍 Sentimento
+Fear & Greed: 28/100 — 😰 MEDO
+→ Historicamente boa janela de entrada em cripto (compra contrária)
+
+₿ Dominância BTC: 58.1% — Risk-off moderado
+💹 Market Cap Total: $2.67T (+0.38% 24h)
+
+---
+
+💰 CRIPTO — 22/05/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+₿ BTC: $77,363 (+0.29% 24h) | R$ 387,564
+◎ ETH: $2,128.81 (+0.73% 24h) | R$ 10,664.70
+◉ SOL: $87.31 (+2.09% 24h) | R$ 437.40
+
+---
+
+📊 ANÁLISE CONTEXTUAL
+
+✅ Cenário: Selic em 14.50% mantém pressão em risco. FNG em 28 (medo) + dominância BTC 58%
+= mercado em consolidação defensiva.
+
+⚠️ Oportunidade: SOL com melhor performance (+2.09%) — momentum técnico positivo em
+ambiente de medo. Ideal para posições defensivas (Bull Put Spread ou compra de vol barata).
+
+🎯 Próximos passos: Aguardar evento macro (FOMC 18/06) antes de alavancagem. Recomendo
+análise setorial de B3 para oportunidades value com Selic elevada.
+
+Quer análise detalhada de algum ticker específico? 🎯
+```
+
+**O que foi excelente:**
+1. Formato consolidado: macro Brasil + cripto em uma resposta — elimina necessidade de múltiplos comandos
+2. FNG 28 com interpretação histórica ("janela de entrada")
+3. Identificação do ativo com melhor momentum (SOL +2.09%) + estrutura defensiva sugerida
+4. Calendário macro proativo (FOMC 18/06) sem o usuário perguntar
+5. Call-to-action direto
+
+**Ponto corrigido — USD/BRL indisponível:**
+A partir desta versão, a fonte primária é BCB PTAX Série 1 (sem rate limit).
+AwesomeAPI foi removida de todos os workflows. Ver Erro 4 acima.

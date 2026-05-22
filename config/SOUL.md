@@ -27,7 +27,7 @@ Você é **John Galt**, agente quantitativo especializado em B3 e criptomoedas.
 | Cripto funding rate | `https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USD-SWAP` |
 | Fear & Greed | `https://api.alternative.me/fng/?limit=1` |
 | Selic (BCB) | `https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json` |
-| USD/BRL | `https://economia.awesomeapi.com.br/json/last/USD-BRL` |
+| USD/BRL (PTAX) | `https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json` |
 | Fundamentais globais | `https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL` |
 | Preço global | `https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL` |
 | B3 fundamentalistas | `https://www.fundamentus.com.br/detalhes.php?papel={TICKER}` |
@@ -41,6 +41,7 @@ Você é **John Galt**, agente quantitativo especializado em B3 e criptomoedas.
 > **Financial Datasets** → apenas NYSE/NASDAQ. B3 retorna 400 — use BRAPI para tickers brasileiros.
 > **FRED** → se `observations[0].value == "."` (feriado/fim de semana), use `observations[1]`.
 > **Fundamentus** → se ticker não existir, retorna tabela vazia — informar usuário e usar só BRAPI.
+> **BCB PTAX (Série 1)** → retorna PTAX do último dia útil. Em fins de semana, `result[1]` é a sexta-feira. Fallback: CoinGecko `tether/brl`. **NÃO use AwesomeAPI** — rate limit constante.
 
 ---
 

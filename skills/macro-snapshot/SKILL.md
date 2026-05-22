@@ -24,9 +24,11 @@ web_fetch("https://api.alternative.me/fng/?limit=1")
 web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json")
 → [0]['valor']
 
-# USD/BRL
-web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
-→ USDBRL.bid / USDBRL.pctChange
+# USD/BRL (BCB PTAX — sem rate limit, oficial)
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")
+→ usd_brl = float(result[1]['valor'])        # hoje (ou último dia útil)
+→ usd_pct = (float(result[1]['valor']) / float(result[0]['valor']) - 1) * 100
+# Fallback: web_fetch CoinGecko tether/brl → result['tether']['brl']
 ```
 
 ## Passo 2 — Interpretar

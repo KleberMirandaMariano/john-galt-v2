@@ -8,9 +8,13 @@ Execute quando o usuário digitar `.macro`, "macro Brasil", "Selic hoje", "dóla
 web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json")
 → selic_pct = float(result[0]['valor'])
 
-web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
-→ usd_brl = float(result['USDBRL']['bid'])
-→ usd_pct = float(result['USDBRL']['pctChange'])
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")
+→ usd_brl = float(result[1]['valor'])        # PTAX hoje (ou último dia útil)
+→ usd_d1  = float(result[0]['valor'])        # dia anterior
+→ usd_pct = (usd_brl / usd_d1 - 1) * 100   # variação %
+# Fallback se BCB falhar:
+web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=brl")
+→ usd_brl = result['tether']['brl']          # USDT/BRL (proxy)
 
 web_fetch("https://api.alternative.me/fng/?limit=1")
 → fng_value = int(result['data'][0]['value'])

@@ -89,7 +89,7 @@ web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,so
 web_fetch("https://api.alternative.me/fng/?limit=1")
 
 # Câmbio USD/BRL
-web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")
 
 # IV e options chain (OKX — sem auth)
 web_fetch("https://www.okx.com/api/v5/public/opt-summary?instFamily=SOL-USD")
@@ -184,7 +184,7 @@ web_fetch("https://brapi.dev/api/quote/COGN3,PETR4,VALE3?token=tP2QrzuthuXx4Jjrn
 → results[0].priceEarnings, earningsPerShare, marketCap
 
 # Câmbio (impacto exportadoras)
-web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")
 
 # Selic (taxa livre de risco para Black-Scholes)
 web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json")
@@ -256,7 +256,7 @@ web_fetch("https://api.financialdatasets.ai/prices/snapshot/?ticker=AAPL")
 
 **Brasil:**
 - Selic → `web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json")`
-- USD/BRL → `web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")`
+- USD/BRL → `web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")` → `[1]['valor']`
 - IVOL-BR: >30 favorece compra de vol; <20 favorece venda
 - CDS Brasil 5Y: >200bps → cautela
 
@@ -298,7 +298,7 @@ web_fetch CoinGecko (BTC, ETH, SOL) + web_fetch Fear&Greed
 
 ### `macro`
 ```
-web_fetch BCB (Selic) + web_fetch awesomeapi (USD/BRL)
+web_fetch BCB (Selic) + web_fetch BCB série 1 (USD/BRL PTAX)
 → Selic, câmbio, contexto macro Brasil
 ```
 
