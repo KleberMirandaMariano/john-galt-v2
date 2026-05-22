@@ -109,11 +109,25 @@ def fetch_selic():
         return 13.75
 
 def fetch_usdbrl():
-    url = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
+    # BCB PTAX Série 1 — oficial, sem rate limit
     try:
-        r = requests.get(url, timeout=10)
-        return float(r.json()["USDBRL"]["bid"])
-    except:
+        r = requests.get(
+            "https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json",
+            timeout=10,
+        )
+        data = r.json()
+        if data and len(data) >= 1:
+            return float(data[-1]["valor"])
+    except Exception:
+        pass
+    # Fallback: CoinGecko USDT/BRL
+    try:
+        r = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=brl",
+            timeout=10,
+        )
+        return float(r.json()["tether"]["brl"])
+    except Exception:
         return None
 
 def fetch_crypto(ticker_map):

@@ -54,16 +54,22 @@ web_fetch("https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USD-SWAP")
 web_fetch("https://www.okx.com/api/v5/market/open-interest?instId=BTC-USD-SWAP")
 ```
 
-### BCB + AwesomeAPI
+### BCB — Selic + PTAX
 ```
 # Selic
 web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json")
 → [0]['valor']  # % a.a.
 
-# USD/BRL
-web_fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL")
-→ USDBRL.bid
+# USD/BRL PTAX (oficial, sem rate limit) — buscar 2 pontos para calcular variação
+web_fetch("https://api.bcb.gov.br/dados/serie/bcdata.sgs.1/dados/ultimos/2?formato=json")
+→ [1]['valor']  # PTAX hoje (ou último dia útil)
+→ variação = (float([1]['valor']) / float([0]['valor']) - 1) * 100
+
+# Fallback USD/BRL (se BCB série 1 falhar)
+web_fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=brl")
+→ tether.brl    # proxy USDT/BRL
 ```
+⚠️ **NÃO use AwesomeAPI** (`economia.awesomeapi.com.br`) — sofre rate limit constante em produção.
 
 ### Fear & Greed
 ```
