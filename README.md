@@ -1,232 +1,284 @@
-# 🤖 John Galt v2.0 — Agente Quantitativo B3 + Cripto
+# John Galt v2.0 — Agente Quantitativo B3 + Cripto
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Status](https://img.shields.io/badge/status-production-green.svg)]()
 
-**Agente quantitativo autônomo para análise de mercado brasileiro (B3) e criptomoedas.**
+Agente quantitativo autônomo para análise de mercado brasileiro (B3) e criptomoedas. Roda dentro do **ZeroClaw**, framework de agentes de IA implantado em VPS, interagindo com usuários via Telegram. O runtime do agente usa Claude Haiku 4.5 via OpenRouter.
 
-**Stack:** Claude Haiku 4.5 + OpenRouter + YFinance + b3_trading_signals  
 **Autor:** Kleber Miranda  
-**Última Atualização:** 03/05/2026
+**Última Atualização:** 23/05/2026
 
 ---
 
-## 📊 Funcionalidades
+## Funcionalidades
 
-### 🎯 **Análise Quantitativa B3**
-- ✅ **Black-Scholes completo** (Greeks: Delta, Gamma, Theta, Vega, Rho)
-- ✅ **Kelly Criterion** (position sizing)
-- ✅ **Estruturas de opções** (Travas, THL, Booster, Iron Condor)
-- ✅ **Backtesting profissional** (7 estratégias: SMA, EMA, BB, MACD)
-- ✅ **Validação automática** de análises (9 erros detectados)
+### Análise Quantitativa B3
+- **Black-Scholes completo** (Greeks: Delta, Gamma, Theta, Vega, Rho)
+- **Kelly Criterion** + Bayesian Kelly (sizing com atualização de probabilidade por sinais)
+- **Opções reais via COTAHIST** — chain completa de PUT/CALL direto da B3, sem IV hardcoded
+- **Fundamentais via Fundamentus** (ROE, ROIC, margens, dívida, DY, Graham Value)
+- **Estruturas de opções** (Travas, THL, Booster, Iron Condor)
+- **Backtesting profissional** (7 estratégias: SMA, EMA, BB, MACD)
 
-### 💰 **Dados de Mercado**
-- ✅ **B3 Opções:** 333 ações (PETR4, VALE3, COGN3, ITUB4, etc)
-- ✅ **Cripto:** BTC, ETH, SOL (spot + opções Deribit)
-- ✅ **Índices Globais:** S&P 500, Nasdaq, Dow, FTSE, Nikkei, Hang Seng, Ibovespa
-- ✅ **Macro:** Selic, USD/BRL, Fear & Greed Index
+### Cripto
+- **BTC/ETH/SOL/XRP** — spot + opções OKX (IV, Greeks, Open Interest)
+- **Correlações BTC** vs VIX, S&P 500, DXY, Ouro
+- **Fear & Greed Index** integrado como sinal bayesiano
 
-### 📈 **Análise de Correlações**
-- ✅ **BTC vs VIX** (volatilidade)
-- ✅ **BTC vs S&P 500** (risk-on/risk-off)
-- ✅ **BTC vs DXY** (dólar)
-- ✅ **BTC vs Gold** (ouro digital)
+### Macro
+- **Brasil:** Selic (BCB), USD/BRL (BCB PTAX Série 1)
+- **EUA (FRED):** Fed Funds, Treasuries 2Y/10Y, Spread 10Y−2Y, DXY (DTWEXBGS)
+- **Índices globais:** S&P 500, Nasdaq, Dow, FTSE, Nikkei, Hang Seng, Ibovespa
 
-### 🔬 **Backtesting B3**
-- ✅ **7 Estratégias:** SMA (9/21, 21/50, 9/21/50), EMA (9/21, 12/26), BB (20,2), MACD (12,26,9)
-- ✅ **Métricas completas:** Retorno total, Sharpe Ratio, Max Drawdown, Win Rate
-- ✅ **Ranking automático** por performance
-- ✅ **Output JSON** estruturado
+### Pipeline de IA (Fases 1–4)
+- **Superinteligência (Fase 1):** AgentSwarm paralelo → ReflectionEngine (até 3 iterações de autocrítica) → AutoValidator
+- **Memória (Fase 2):** três stores — episódico, semântico (com busca vetorial TF-cosine), procedural
+- **Biblioteca de Skills (Fase 3):** extração automática de padrões de episódios bem-sucedidos
+- **Aprendizado Autônomo (Fase 4):** A/B testing, currículo de melhoria, benchmarking de qualidade
 
 ---
 
-## 🚀 Instalação
+## Instalação
 
-### 1. Pré-requisitos
+### Pré-requisitos
 
 ```bash
-# Ubuntu 24 / Debian 12
-sudo apt update
-sudo apt install -y python3 python3-pip git curl
-
-# Python packages
-pip install --break-system-packages \
-  pandas numpy matplotlib yfinance \
-  scipy requests python-dotenv \
-  openpyxl scikit-learn
+pip install -r requirements.txt
 ```
 
-### 2. Clone do Repositório
+### Clone
 
 ```bash
 git clone https://github.com/KleberMirandaMariano/john-galt-v2.git
 cd john-galt-v2
 ```
 
-### 3. Instalar b3_trading_signals
+### Instalar b3_trading_signals (apenas VPS)
 
 ```bash
 cd /root/.zeroclaw
 git clone https://github.com/gkeiel/b3_trading_signals.git
-cd b3_trading_signals
-pip install -e . --break-system-packages
+pip install -e b3_trading_signals --break-system-packages
+```
+
+### Variáveis de ambiente
+
+```bash
+cp .env.example .env
+# Preencher: ANTHROPIC_API_KEY, OPENROUTER_API_KEY, BRAPI_TOKEN
+# FRED_API_KEY (gratuito em fred.stlouisfed.org) → em SECRETS.md no workspace do VPS
 ```
 
 ---
 
-## 📋 Scripts Disponíveis
+## Scripts Disponíveis
 
-### **📊 Análise de Opções B3**
+### Análise de Ticker
 
-#### `validate_options_b3.py` — Validador de Opções
 ```bash
-python3 validate_options_b3.py TICKER SPOT STRIKE DAYS RATE VOL SERIES DATE PREMIUM TARGET CONTRACTS
-
-# Exemplo PETR4
-python3 validate_options_b3.py PETR4 49.08 52.00 30 0.1375 0.45 PETRF52 2026-06-15 1.50 55.00 10
+# Pré-processador quantitativo — escreve em /root/.zeroclaw/workspace/{TICKER}_output.txt
+python3 analyze_ticker.py COGN3
+python3 analyze_ticker.py BTC
 ```
 
-**Output:** Greeks (Black-Scholes), P(ITM), Break-even, P&L, Kelly Criterion
+Saída inclui: Black-Scholes, Greeks, Bayesian Kelly sizing, Graham Value, chain de opções COTAHIST.
 
----
+### Backtesting B3
 
-### **🔬 Backtesting B3**
-
-#### `validate_strategy_backtest.py` — Backtest Profissional
 ```bash
-python3 validate_strategy_backtest.py TICKER [dias]
-
-# Exemplos
-python3 validate_strategy_backtest.py PETR4      # 365 dias (default)
-python3 validate_strategy_backtest.py VALE3 180  # 180 dias
-python3 validate_strategy_backtest.py COGN3 90   # 90 dias
+python3 validate_strategy_backtest.py PETR4 180   # 180 dias
+python3 validate_strategy_backtest.py VALE3        # 365 dias (default)
 ```
 
-**Estratégias testadas:**
-- SMA 9/21, 21/50, 9/21/50
-- EMA 9/21, 12/26
-- Bollinger Bands 20/2
-- MACD 12/26/9
+Estratégias: SMA 9/21, 21/50, 9/21/50 — EMA 9/21, 12/26 — Bollinger Bands 20/2 — MACD 12/26/9  
+Output JSON: `/tmp/backtest_TICKER_YYYYMMDD.json`
 
-**Output JSON:** `/tmp/backtest_TICKER_YYYYMMDD.json`
+### Validação de Opções B3
 
-**Resultado PETR4 (180 dias):**
-```
-🥇 EMA 9/21:    +58.73% (Sharpe 3.84, DD -7.15%)
-🥈 EMA 12/26:   +58.37% (Sharpe 3.80, DD -7.15%)
-🥉 SMA 9/21:    +46.98% (Sharpe 3.52, DD -7.15%)
-```
-
----
-
-### **📈 Análise de Correlações BTC**
-
-#### `btc_vix_correlation.py` — BTC vs VIX
 ```bash
-python3 btc_vix_correlation.py [dias]
-python3 btc_vix_correlation.py 90  # 90 dias (default)
+python3 scripts/validate_options_b3.py PETR4 49.08 52.00 30 0.1375 0.45 PETRF52 2026-06-15 1.50 55.00 10
+# Parâmetros: TICKER SPOT STRIKE DIAS TAXA VOL SÉRIE VENCIMENTO PRÊMIO ALVO CONTRATOS
 ```
 
-**Resultado (02/05/2026):**
-```
-Correlação: -0.4813 (MODERADA NEGATIVA)
-BTC = HEDGE contra volatilidade
-```
+### Correlações BTC
 
-#### `btc_spx_correlation.py` — BTC vs S&P 500
 ```bash
+python3 btc_vix_correlation.py 90
 python3 btc_spx_correlation.py 90
-```
-
-**Resultado:**
-```
-Correlação: +0.5338 (MODERADA POSITIVA)
-BTC = RISK-ON (move com ações)
-```
-
-#### `btc_dxy_correlation.py` — BTC vs Dollar Index
-```bash
 python3 btc_dxy_correlation.py 90
-```
-
-**Resultado:**
-```
-Correlação: -0.1896 (MUITO FRACA)
-BTC = INDEPENDENTE do dólar
-```
-
-#### `btc_gold_correlation.py` — BTC vs Ouro
-```bash
 python3 btc_gold_correlation.py 90
 ```
 
-**Resultado:**
-```
-Correlação: +0.1474 (MUITO FRACA)
-BTC = INDEPENDENTE do ouro
-Volatilidade: BTC 1.7x maior que ouro
+### Testes das Fases
+
+```bash
+python3 test_phase1_complete.py    # Superinteligência + ReflectionEngine + AutoValidator
+python3 test_phase2_memory.py      # Memória episódica/semântica/procedural
+python3 test_phase3_skills.py      # Biblioteca de skills
+python3 test_phase4_autonomous.py  # A/B testing + aprendizado autônomo
 ```
 
 ---
 
-### **💰 Coleta de Dados**
+## Arquitetura
 
-#### `deribit_btc_options.py` — Opções BTC Deribit
-```bash
-python3 deribit_btc_options.py
-```
+### Runtime: ZeroClaw Agent
 
-**Output:**
-- 946 opções BTC (Calls + Puts)
-- Greeks completos
-- Volatilidade Implícita
-- Open Interest
-- JSON: `/tmp/deribit_btc_options.json`
+O agente implantado usa exclusivamente `web_fetch` para dados externos — sem shell, subprocess, import ou glob_search. Toda computação (Black-Scholes, Kelly, Graham) é feita inline na resposta do LLM.
 
-#### `yfinance_indices.py` — Índices Globais
-```bash
-python3 yfinance_indices.py
-```
+Configuração em `config/config.toml.example`. Parâmetros principais:
+- Modelo: `anthropic/claude-haiku-4.5` via OpenRouter
+- Telegram: `allowed_users = ["klebermd13", "1808474055"]`
+- Domínios permitidos: CoinGecko, BRAPI, OKX, BCB, FRED, Fundamentus, FinancialDatasets
+- Workspace: `/root/.zeroclaw/workspace/`
 
-**Output:**
-- 8 índices: S&P 500, Dow, Nasdaq, FTSE, Nikkei, Taiwan, Hang Seng, Ibovespa
-- Volatilidade histórica (20 dias)
-- Retornos diários
-- JSON: `/tmp/yfinance_indices.json`
+### Módulos `src/`
+
+| Módulo | Função |
+|--------|--------|
+| `agent_bus.py` | Barramento A2A in-process: pub/sub, direct, req/reply (asyncio puro) |
+| `agent_swarm_a2a.py` | AgentSwarm com comunicação real entre agentes durante execução |
+| `bayesian_signals.py` | Atualização bayesiana sequencial de P(sucesso\|sinais) + Kelly integrado |
+| `cotahist.py` | Parser do COTAHIST B3 (formato fixo, Latin-1): spot real + chain PUT/CALL |
+| `enhanced_memory.py` | Três stores de memória com busca vetorial TF-cosine para semântico |
+| `latency_tracker.py` | Instrumentação de latência por etapa (P50/P95, JSONL append-only) |
+| `skill_library.py` | Extração automática de padrões de episódios bem-sucedidos |
+| `autonomous_learning.py` | A/B testing, currículo de melhoria, detecção de degradação de qualidade |
+| `crypto_options.py` | Opções cripto via OKX (IV, Greeks, Open Interest) |
+
+### Skills do ZeroClaw (`skills/`)
+
+| Skill | Gatilho / Função |
+|-------|-----------------|
+| `bayesian-signals` | Sizing bayesiano — P(sucesso\|sinais) + Kelly capeado |
+| `coingecko-live` | Dados cripto via CoinGecko (BTC, ETH, SOL, XRP, etc.) |
+| `cross-validation` | Validação dual-source para HV, IV, preço |
+| `decision-synthesis` | Scoring 4D (T/F/M/S) → AÇÃO + CONFIANÇA + SIZING |
+| `earnings-calendar` | Gate de eventos macro antes de qualquer recomendação |
+| `fear-greed-live` | Fear & Greed Index via Alternative.me |
+| `file-read-workflow` | Tenta cache antes de `web_fetch` |
+| `financial-datasets-live` | Fundamentais NYSE/NASDAQ via FinancialDatasets.ai |
+| `fundamentus-b3` | ROE, ROIC, margens, dívida, DY, Graham Value via Fundamentus |
+| `macro-brasil` | Selic (BCB) + USD/BRL (BCB PTAX Série 1) |
+| `macro-global` | Fed Funds + Treasuries 2Y/10Y + Spread + DXY via FRED |
+| `macro-snapshot` | Snapshot macro global consolidado |
+| `quant-b3` | Protocolo completo de análise de opções B3 |
+| `quant-report-format` | Template obrigatório de relatório com auto-check |
+| `risk-gating` | Checklist de 7 itens antes de qualquer recomendação |
+
+**Fluxo de override:** resultado do `risk-gating` rebaixa a recomendação do `decision-synthesis` se reprovado.
+
+### Configuração do Agente (`config/`)
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `SOUL.md` | Personalidade, endpoints disponíveis, fórmula HV, formato obrigatório de output |
+| `AGENTS.md` | Auto-triggers (ex: "analise TICKER" → workflow completo imediato) + workflows passo a passo |
+| `TOOLS.md` | Registro de todos os endpoints com field paths exatos e fórmulas inline |
+| `config.toml.example` | Template de configuração do ZeroClaw |
 
 ---
 
-## 🛠️ Estrutura do Projeto
+## Fontes de Dados
+
+| Ativo | API | Auth |
+|-------|-----|------|
+| B3 cotações | `brapi.dev/api/quote/{TICKER}` | `BRAPI_TOKEN` |
+| B3 opções (real) | COTAHIST via `src/cotahist.py` | Nenhuma (arquivo público B3) |
+| B3 fundamentais | `www.fundamentus.com.br/detalhes.php?papel={TICKER}` | Nenhuma |
+| US macro (Fed/yields/DXY) | `api.stlouisfed.org/fred/series/observations` | `FRED_API_KEY` (gratuito) |
+| Cripto spot/histórico | `api.coingecko.com` | Nenhuma |
+| Cripto opções/IV | `www.okx.com/api/v5/public/opt-summary` | Nenhuma |
+| Fear & Greed | `api.alternative.me/fng/` | Nenhuma |
+| Selic | `api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1` | Nenhuma |
+| USD/BRL | BCB PTAX Série 1 (fonte oficial do Banco Central) | Nenhuma |
+| NYSE/NASDAQ fundamentais | `api.financialdatasets.ai` | Nenhuma |
+
+> **B3 vs NYSE/NASDAQ:** FinancialDatasets retorna 400 para tickers B3 — use sempre BRAPI/COTAHIST para ações brasileiras.  
+> **USD/BRL:** Migrado de AwesomeAPI para BCB PTAX Série 1 (fonte oficial, mais estável).
+
+---
+
+## Estrutura do Projeto
 
 ```
 john-galt-v2/
-├── README.md                          # Este arquivo
+├── analyze_ticker.py              # Pré-processador quantitativo principal
+├── validate_strategy_backtest.py  # Backtesting B3 (7 estratégias)
+├── john_galt_superintelligence.py # Orquestrador Fase 1 (AgentSwarm → Reflection → Validator)
+├── reflection_engine.py           # Autocrítica iterativa via OpenRouter
+├── auto_validator.py              # Validação de saídas (freshness, Greeks, seções)
+├── btc_*_correlation.py          # Correlações BTC vs VIX/SPX/DXY/Gold
 ├── config/
-│   ├── SOUL.md                        # Personalidade do agente
-│   ├── AGENTS.md                      # Configuração de agentes
-│   ├── TOOLS.md                       # Ferramentas disponíveis
-│   └── config.json                    # Config backtester
-├── btc_vix_correlation.py            # BTC vs VIX
-├── btc_spx_correlation.py            # BTC vs S&P 500
-├── btc_dxy_correlation.py            # BTC vs DXY
-├── btc_gold_correlation.py           # BTC vs Gold
-├── deribit_btc_options.py            # Opções BTC Deribit
-├── yfinance_indices.py               # Índices globais
-├── validate_strategy_backtest.py     # Backtesting B3
-├── validate_options_b3.py            # Validador opções B3
-└── requirements.txt                   # Dependências Python
+│   ├── SOUL.md                    # Identidade e formato de output do agente
+│   ├── AGENTS.md                  # Auto-triggers e workflows
+│   ├── TOOLS.md                   # Endpoints + fórmulas inline
+│   └── config.toml.example        # Template ZeroClaw
+├── skills/                        # Skills do agente ZeroClaw
+│   ├── bayesian-signals/
+│   ├── coingecko-live/
+│   ├── cross-validation/
+│   ├── decision-synthesis/
+│   ├── earnings-calendar/
+│   ├── fear-greed-live/
+│   ├── file-read-workflow/
+│   ├── financial-datasets-live/
+│   ├── fundamentus-b3/
+│   ├── macro-brasil/
+│   ├── macro-global/
+│   ├── macro-snapshot/
+│   ├── quant-b3/
+│   ├── quant-report-format/
+│   └── risk-gating/
+├── src/
+│   ├── agent_bus.py               # Barramento A2A in-process
+│   ├── agent_swarm_a2a.py         # AgentSwarm com comunicação real entre agentes
+│   ├── bayesian_signals.py        # Bayes sequencial + Kelly integrado
+│   ├── cotahist.py                # Parser COTAHIST B3 (spot + chain opções)
+│   ├── crypto_options.py          # Opções cripto via OKX
+│   ├── enhanced_memory.py         # Memória (episódico/semântico/procedural) + busca vetorial
+│   ├── latency_tracker.py         # Instrumentação de latência P50/P95
+│   ├── skill_library.py           # Extração automática de padrões
+│   └── autonomous_learning.py     # A/B testing + aprendizado autônomo
+├── b3_trading_signals/            # Engine de backtesting (bundled)
+├── scripts/
+│   └── validate_options_b3.py     # Validador de opções B3
+└── requirements.txt
 ```
 
 ---
 
-## 📊 Resultados de Testes
+## Invariantes Críticos
 
-### **Backtesting PETR4 (180 dias)**
+- **Nunca use dados de memória para valores quantitativos.** HV, IV, correlação e preço devem sempre vir de `web_fetch` fresco. O incidente SOL (02/05/2026) usou HV 38% stale vs 49.8% real, invertendo a estratégia de vol.
+- **Toda recomendação deve passar pelos 4 auto-checks:** VALIDAÇÃO, RISK GATING, SCORES, DECISÃO FINAL. Se qualquer seção faltar, reescrever.
+- **Caps de Kelly:** 2% do capital para alto risco (OTM), 5% para risco definido (RR > 2:1). Sempre 1/4 Kelly, nunca Kelly pleno.
+- **USD/BRL:** usar exclusivamente BCB PTAX Série 1 — AwesomeAPI foi descontinuado por instabilidade.
+
+---
+
+## Troubleshooting
+
+```bash
+# YFinance timeout
+export YFINANCE_TIMEOUT=30
+
+# b3_trading_signals — bug "Med"
+sed -i 's/"Med"/"Mid"/g' /root/.zeroclaw/b3_trading_signals/core/backtester.py
+
+# Deribit API rate limit — reduzir BATCH_SIZE no script (padrão: 50 → 25)
+```
+
+---
+
+## Resultados de Testes
+
+### Backtesting PETR4 (180 dias)
 
 | Estratégia | Retorno | Sharpe | Max DD | Trades | Win% |
 |------------|---------|--------|--------|--------|------|
-| **EMA 9/21** | **+58.73%** | **3.84** | **-7.15%** | **3** | **33.3%** |
+| **EMA 9/21** | **+58.73%** | **3.84** | **-7.15%** | 3 | 33.3% |
 | EMA 12/26 | +58.37% | 3.80 | -7.15% | 3 | 33.3% |
 | SMA 9/21 | +46.98% | 3.52 | -7.15% | 2 | 0.0% |
 | MACD 12/26/9 | +46.26% | 3.89 | -6.64% | 8 | 37.5% |
@@ -234,130 +286,76 @@ john-galt-v2/
 | SMA 9/21/50 | +34.19% | 2.85 | -7.15% | 2 | 50.0% |
 | BB 20/2 | +2.04% | 2.07 | 0.00% | 4 | 50.0% |
 
-**Melhor estratégia:** EMA 9/21 com **+58.73% em 6 meses** (117% anualizado)
+### Correlações BTC (90 dias)
 
-### **Correlações BTC (90 dias - 02/05/2026)**
-
-| Ativo | Pearson | Força | Interpretação |
-|-------|---------|-------|---------------|
-| **VIX** | -0.48 | 🟠 Moderada | Hedge contra vol |
-| **S&P 500** | +0.53 | 🟠 Moderada | Risk-On |
-| **DXY** | -0.19 | 🟢 Muito Fraca | Independente |
-| **Gold** | +0.15 | 🟢 Muito Fraca | Independente |
-
-**Conclusão:** BTC comporta-se como **tech stock** (correlacionado com ações), não como safe haven.
+| Ativo | Pearson | Interpretação |
+|-------|---------|---------------|
+| VIX | -0.48 | Moderada negativa — hedge contra vol |
+| S&P 500 | +0.53 | Moderada positiva — risk-on |
+| DXY | -0.19 | Muito fraca — independente |
+| Gold | +0.15 | Muito fraca — independente |
 
 ---
 
-## 🔧 Configuração de Automação
+## Deploy
 
-### **Cron Jobs (Execução Diária)**
+Push para `main` dispara `.github/workflows/deploy-to-vps.yml` → deploy automático para `/root/.zeroclaw/workspace/`.
 
-```bash
-crontab -e
-
-# Índices globais - 12:00
-0 12 * * 1-5 python3 /root/.zeroclaw/workspace/yfinance_indices.py >> /tmp/yfinance_cron.log 2>&1
-
-# Opções BTC Deribit - 12:05
-5 12 * * 1-5 python3 /root/.zeroclaw/workspace/deribit_btc_options.py >> /tmp/deribit_cron.log 2>&1
-
-# Correlações BTC - 12:15-12:18
-15 12 * * 1-5 python3 /root/.zeroclaw/workspace/btc_vix_correlation.py 90 >> /tmp/btc_corr_cron.log 2>&1
-16 12 * * 1-5 python3 /root/.zeroclaw/workspace/btc_spx_correlation.py 90 >> /tmp/btc_corr_cron.log 2>&1
-17 12 * * 1-5 python3 /root/.zeroclaw/workspace/btc_dxy_correlation.py 90 >> /tmp/btc_corr_cron.log 2>&1
-18 12 * * 1-5 python3 /root/.zeroclaw/workspace/btc_gold_correlation.py 90 >> /tmp/btc_corr_cron.log 2>&1
-```
+Setup do bot Telegram: `zeroclaw onboard --channels-only`
 
 ---
 
-## 🐛 Troubleshooting
+## Changelog
 
-### **YFinance Timeout**
-```bash
-# Aumentar timeout
-export YFINANCE_TIMEOUT=30
-```
-
-### **Deribit API Rate Limit**
-```bash
-# Reduzir batch size no script
-# Linha 45: BATCH_SIZE = 25  # Default: 50
-```
-
-### **Backtesting Erro "Med"**
-```bash
-# Aplicar fix no b3_trading_signals
-cd /root/.zeroclaw/b3_trading_signals
-sed -i 's/"Med"/"Mid"/g' core/backtester.py
-```
-
----
-
-## 📚 Documentação Completa
-
-**Notion:** https://www.notion.so/33f75c18ae098142b3cce5be5982649f
-
-Inclui:
-- 📊 Análise PETR4 completa
-- 🔬 Backtesting metodologia
-- 📈 Correlações BTC interpretação
-- 🛠️ Troubleshooting detalhado
-- 📝 Changelog completo
-
----
-
-## 🤝 Contribuindo
-
-Pull requests são bem-vindos!
-
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Add nova feature'`)
-4. Push (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
----
-
-## 📝 Licença
-
-MIT License — Veja [LICENSE](LICENSE) para detalhes.
-
----
-
-## 🙏 Agradecimentos
-
-- **[b3_trading_signals](https://github.com/gkeiel/b3_trading_signals)** — Biblioteca de backtesting B3
-- **[YFinance](https://github.com/ranaroussi/yfinance)** — Dados de mercado
-- **[CoinGecko](https://www.coingecko.com)** — Dados de cripto
-- **[Deribit](https://www.deribit.com)** — Opções BTC
-- **[Alternative.me](https://alternative.me)** — Fear & Greed Index
-- **Claude (Anthropic)** — LLM
-- **OpenRouter** — API Gateway
-
----
-
-## 📊 Changelog
+### v2.1.0 — 23/05/2026
+- Sinais bayesianos com atualização sequencial de P(sucesso|sinais) + Kelly integrado (`src/bayesian_signals.py` + skill `bayesian-signals`)
+- Chain de opções B3 real via COTAHIST (`src/cotahist.py`) — substitui estimativa Black-Scholes com IV hardcoded
+- Barramento A2A in-process pub/sub/req/reply (`src/agent_bus.py` + `src/agent_swarm_a2a.py`)
+- Memória semântica com busca vetorial TF-cosine (`src/enhanced_memory.py`)
+- Instrumentação de latência P50/P95 (`src/latency_tracker.py`)
+- Macro EUA via FRED: Fed Funds, Treasuries 2Y/10Y, Spread, DXY (skill `macro-global`)
+- Fundamentais B3 via Fundamentus + Graham Value (skill `fundamentus-b3`)
+- USD/BRL migrado de AwesomeAPI para BCB PTAX Série 1 (fonte oficial)
+- Skill `macro-snapshot` com formato canônico de panorama
+- Skill `coingecko-live` com suporte a XRP + exemplo de análise canônico
+- Remoção de tokens Telegram hardcoded de todos os arquivos
 
 ### v2.0.3 — 03/05/2026
-- ✅ Integração b3_trading_signals (backtesting profissional)
-- ✅ 4 scripts de correlação BTC (VIX, S&P500, DXY, Gold)
-- ✅ Deribit BTC options fetcher (946 opções)
-- ✅ YFinance global indices (8 índices)
-- ✅ Testes completos PETR4 (EMA 9/21: +58.73%)
+- Integração b3_trading_signals (backtesting profissional)
+- 4 scripts de correlação BTC (VIX, S&P500, DXY, Gold)
+- Deribit BTC options fetcher
+- YFinance global indices (8 índices)
+- Testes completos PETR4 (EMA 9/21: +58.73%)
 
 ### v2.0.2 — 23/04/2026
-- ✅ Validador genérico de opções B3
-- ✅ Correção 9 erros COGN3
-- ✅ CI/CD GitHub Actions
-- ✅ Deploy automático VPS
+- Validador genérico de opções B3
+- Correção de 9 erros COGN3
+- CI/CD GitHub Actions + deploy automático VPS
 
 ### v2.0.1 — Initial Release
-- ✅ Agente quantitativo básico
-- ✅ Black-Scholes + Kelly Criterion
-- ✅ SOUL.md + AGENTS.md
+- Agente quantitativo básico
+- Black-Scholes + Kelly Criterion
+- SOUL.md + AGENTS.md
 
 ---
 
-**Desenvolvido com ❤️ por [Kleber Miranda](https://github.com/KleberMirandaMariano)**  
-**Última Atualização:** 03/05/2026
+## Licença
+
+MIT License — veja [LICENSE](LICENSE) para detalhes.
+
+---
+
+## Agradecimentos
+
+- [b3_trading_signals](https://github.com/gkeiel/b3_trading_signals) — backtesting B3
+- [YFinance](https://github.com/ranaroussi/yfinance) — dados de mercado
+- [CoinGecko](https://www.coingecko.com) — dados cripto
+- [FRED / St. Louis Fed](https://fred.stlouisfed.org) — macro EUA
+- [Fundamentus](https://www.fundamentus.com.br) — fundamentais B3
+- [BCB](https://www.bcb.gov.br) — Selic e PTAX
+- [Alternative.me](https://alternative.me) — Fear & Greed Index
+- [Claude (Anthropic)](https://anthropic.com) — LLM
+
+---
+
+**Desenvolvido por [Kleber Miranda](https://github.com/KleberMirandaMariano)**
