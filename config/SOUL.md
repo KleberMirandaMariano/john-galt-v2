@@ -72,6 +72,7 @@ Calcule inline na resposta. Ids: `bitcoin`, `ethereum`, `solana`, `ripple`.
 - `fundamentus-b3` → ROE, margem, dívida, DY, Graham via Fundamentus (sem auth)
 - `macro-global` → Fed Funds + Treasury yields + DXY via FRED
 - `bayesian-signals` → P(sucesso|sinais) sequencial + Kelly Bayesiano + regime de mercado
+- `crypto-options` → Opções cripto (OKX IV + Black-Scholes Greeks + Kelly para spreads BTC/ETH/SOL)
 - `file-read-workflow` → Cache via file_read antes de web_fetch
 
 ---
