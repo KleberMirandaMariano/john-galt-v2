@@ -140,6 +140,90 @@ def fetch_crypto(ticker_map):
         print(f"  ⚠️  Erro CoinGecko: {e}")
     return {}
 
+def fetch_crypto_history(cg_id, days=65):
+    """Fetch daily close prices from CoinGecko market_chart for HV/Z-score/correlation."""
+    url = f"https://api.coingecko.com/api/v3/coins/{cg_id}/market_chart?vs_currency=usd&days={days}&interval=daily"
+    try:
+        r = requests.get(url, timeout=20)
+        data = r.json()
+        prices = [p[1] for p in data.get("prices", [])]
+        return prices
+    except Exception as e:
+        print(f"  ⚠️  Erro CoinGecko market_chart ({cg_id}): {e}")
+    return None
+
+def compute_hv_stats(prices):
+    """Compute HV 30d, Z-Score, max/min from a price series (needs ≥31 prices)."""
+    if not prices or len(prices) < 31:
+        return None
+    p31 = prices[-31:]
+    returns = [math.log(p31[i] / p31[i - 1]) for i in range(1, len(p31))]
+    n = len(returns)
+    mean_r = sum(returns) / n
+    variance = sum((r - mean_r) ** 2 for r in returns) / (n - 1)
+    sigma_daily = math.sqrt(variance)
+    hv_30d = sigma_daily * math.sqrt(252) * 100
+
+    prices_30d = prices[-30:]
+    mean_30d = sum(prices_30d) / len(prices_30d)
+    variance_30d = sum((p - mean_30d) ** 2 for p in prices_30d) / (len(prices_30d) - 1)
+    std_30d = math.sqrt(variance_30d) if variance_30d > 0 else 1e-9
+    current = prices[-1]
+    z_score = (current - mean_30d) / std_30d
+
+    return {
+        "hv_30d": round(hv_30d, 1),
+        "sigma_daily_pct": round(sigma_daily * 100, 2),
+        "z_score": round(z_score, 2),
+        "mean_30d": round(mean_30d, 2),
+        "max_30d": round(max(prices_30d), 2),
+        "min_30d": round(min(prices_30d), 2),
+    }
+
+def compute_correlation(prices_a, prices_b, days=60):
+    """Pearson correlation between two price series over the last N days."""
+    if not prices_a or not prices_b:
+        return None
+    n = min(len(prices_a), len(prices_b), days)
+    if n < 20:
+        return None
+    a = prices_a[-n:]
+    b = prices_b[-n:]
+    mean_a = sum(a) / n
+    mean_b = sum(b) / n
+    cov = sum((a[i] - mean_a) * (b[i] - mean_b) for i in range(n)) / (n - 1)
+    std_a = math.sqrt(sum((x - mean_a) ** 2 for x in a) / (n - 1))
+    std_b = math.sqrt(sum((x - mean_b) ** 2 for x in b) / (n - 1))
+    if std_a == 0 or std_b == 0:
+        return None
+    return round(cov / (std_a * std_b), 2)
+
+def fetch_okx_iv(inst_family):
+    """Fetch ATM IV from OKX opt-summary. Returns annualised % or None."""
+    url = f"https://www.okx.com/api/v5/public/opt-summary?instFamily={inst_family}"
+    try:
+        r = requests.get(url, timeout=10)
+        data = r.json()
+        if data.get("code") != "0":
+            return None
+        opts = data.get("data", [])
+        atm_ivs = []
+        for opt in opts:
+            try:
+                delta = abs(float(opt.get("delta", 0)))
+                if 0.40 <= delta <= 0.60:
+                    mark_vol = float(opt.get("markVol", 0))
+                    if mark_vol > 0:
+                        atm_ivs.append(mark_vol)
+            except Exception:
+                pass
+        if atm_ivs:
+            # markVol is already annualised decimal (e.g. 0.39 = 39%)
+            return round((sum(atm_ivs) / len(atm_ivs)) * 100, 1)
+    except Exception as e:
+        print(f"  ⚠️  Erro OKX IV ({inst_family}): {e}")
+    return None
+
 def fetch_fng():
     try:
         r = requests.get("https://api.alternative.me/fng/?limit=1", timeout=10)
@@ -350,9 +434,26 @@ def analyze_crypto(ticker):
         return f"❌ Ticker cripto '{ticker}' não suportado. Use: {', '.join(CRYPTO_IDS.keys())}"
 
     print(f"\n🔍 Buscando dados cripto para {ticker}...")
-    data = fetch_crypto({ticker: cg_id})
+    data     = fetch_crypto({ticker: cg_id})
     fng_val, fng_label = fetch_fng()
-    usd = fetch_usdbrl()
+    usd      = fetch_usdbrl()
+
+    # Always fetch fresh historical data — never use memory for these values
+    print(f"   📈 Buscando histórico 65d ({cg_id})...")
+    hist_prices = fetch_crypto_history(cg_id, days=65)
+    stats = compute_hv_stats(hist_prices) if hist_prices else None
+
+    # BTC correlation (skip if this is BTC itself)
+    corr_btc = None
+    if ticker != "BTC":
+        print(f"   📈 Buscando histórico BTC para correlação 60d...")
+        btc_prices = fetch_crypto_history("bitcoin", days=65)
+        if btc_prices and hist_prices:
+            corr_btc = compute_correlation(hist_prices, btc_prices, days=60)
+
+    # OKX IV — works well for BTC-USD / ETH-USD; SOL-USD has limited liquidity
+    okx_family = f"{ticker}-USD" if ticker in ("BTC", "ETH", "SOL") else None
+    iv_okx = fetch_okx_iv(okx_family) if okx_family else None
 
     lines = []
     lines.append(f"{'='*60}")
@@ -381,6 +482,28 @@ def analyze_crypto(ticker):
         lines.append(f"   USD/BRL: R$ {usd:.4f}")
     lines.append("")
 
+    # Statistical metrics computed from real historical prices
+    if stats:
+        dist_max = ((preco_usd / stats["max_30d"]) - 1) * 100
+        lines.append(f"📊 ESTATÍSTICO (calculado via CoinGecko market_chart — NUNCA de memória)")
+        lines.append(f"   HV 30d:      {stats['hv_30d']:.1f}% anualizada (σ diária {stats['sigma_daily_pct']:.2f}%)")
+        lines.append(f"   Z-Score 30d: {stats['z_score']:+.2f}")
+        lines.append(f"   Máx 30d:     ${stats['max_30d']:,.2f} (distância: {dist_max:+.1f}%)")
+        lines.append(f"   Mín 30d:     ${stats['min_30d']:,.2f}")
+        lines.append(f"   Média 30d:   ${stats['mean_30d']:,.2f}")
+        if corr_btc is not None:
+            lines.append(f"   Corr BTC 60d: {corr_btc:+.2f}")
+        if iv_okx is not None:
+            iv_hv_ratio = iv_okx / stats["hv_30d"]
+            lines.append(f"   IV ATM (OKX): {iv_okx:.1f}% | IV/HV = {iv_hv_ratio:.2f}")
+        else:
+            lines.append(f"   IV ATM (OKX): N/A — série sem liquidez suficiente")
+        lines.append("")
+    else:
+        lines.append(f"⚠️  Histórico indisponível — HV/Z-Score não calculados.")
+        lines.append(f"   Consulte coingecko.com para dados históricos.")
+        lines.append("")
+
     if fng_val:
         lines.append(f"😱 SENTIMENTO")
         lines.append(f"   Fear & Greed: {fng_val} — {fng_label}")
@@ -390,31 +513,42 @@ def analyze_crypto(ticker):
             lines.append(f"   → Ganância Extrema: cautela, possível topo")
         lines.append("")
 
-    lines.append(f"📊 ANÁLISE DE OPÇÕES (Black-Scholes)")
-    sigma_est = 0.80
+    # Use real HV from price history; fall back to 0.80 only if fetch failed
+    hv_real = (stats["hv_30d"] / 100) if stats else None
+    sigma_bs = hv_real if hv_real else 0.80
+    sigma_source = "HV real" if hv_real else "estimativa (histórico indisponível)"
+
     dte = 30
     T = dte / 365
     K_atm = round(preco_usd, 2)
 
-    call_price, call_greeks = black_scholes(preco_usd, K_atm, T, 0, sigma_est, "CALL")
-    put_price,  put_greeks  = black_scholes(preco_usd, K_atm, T, 0, sigma_est, "PUT")
+    call_price, call_greeks = black_scholes(preco_usd, K_atm, T, 0, sigma_bs, "CALL")
+    put_price,  put_greeks  = black_scholes(preco_usd, K_atm, T, 0, sigma_bs, "PUT")
 
+    lines.append(f"📊 ANÁLISE DE OPÇÕES (Black-Scholes)")
     lines.append(f"   Parâmetros: Spot=${preco_usd:,.2f} | Strike ATM=${K_atm:,.2f}")
-    lines.append(f"   IV estimada: {sigma_est*100:.0f}% | DTE: {dte}d")
+    lines.append(f"   σ BS: {sigma_bs*100:.1f}% ({sigma_source}) | DTE: {dte}d")
     if call_price:
         lines.append(f"   Call ATM: ${call_price:.4f} | Δ={call_greeks['delta']} θ={call_greeks['theta']}")
     if put_price:
         lines.append(f"   Put  ATM: ${put_price:.4f} | Δ={put_greeks['delta']} θ={put_greeks['theta']}")
     lines.append("")
 
+    # IV/HV strategy signal from real data
     lines.append(f"🎯 ESTRATÉGIAS SUGERIDAS")
-    iv_hv = 1.0
-    if iv_hv > 1.2:
-        lines.append(f"   IV/HV > 1.2 → vol cara → Iron Condor / Straddle vendido")
-    elif iv_hv < 0.8:
-        lines.append(f"   IV/HV < 0.8 → vol barata → Long Straddle / Calendar")
+    if stats and iv_okx:
+        iv_hv = iv_okx / stats["hv_30d"]
+        if iv_hv > 1.2:
+            lines.append(f"   IV/HV = {iv_hv:.2f} > 1.2 → vol cara → Iron Condor / Straddle vendido")
+        elif iv_hv < 0.8:
+            lines.append(f"   IV/HV = {iv_hv:.2f} < 0.8 → vol barata → Long Straddle / Calendar")
+        else:
+            lines.append(f"   IV/HV = {iv_hv:.2f} ≈ 1.0 → vol justa → Bull Call Spread (alta) / Iron Condor (neutro)")
+    elif stats:
+        lines.append(f"   IV OKX N/A — usando HV {stats['hv_30d']:.1f}% como referência")
+        lines.append(f"   → Bull Call Spread (se alta) / Iron Condor (se neutro)")
     else:
-        lines.append(f"   IV/HV ≈ 1.0 → vol justa → Bull Call Spread (se alta) / Iron Condor (neutro)")
+        lines.append(f"   Histórico indisponível — estratégia não determinada")
 
     if _BAYES_OK:
         updater = BayesianUpdater(prior=0.50)
@@ -434,14 +568,16 @@ def analyze_crypto(ticker):
                 updater.update_from_library("fng_neutral", SIGNALS_CRIPTO)
                 applied.append(f"fng_neutral (FNG={fng_val})")
 
-        if sigma_est > 0.80:
-            updater.update_from_library("hv_high", SIGNALS_CRIPTO)
-            regime.update("hv_high")
-            applied.append(f"hv_high (HV~{sigma_est*100:.0f}%)")
-        elif sigma_est < 0.40:
-            updater.update_from_library("hv_low", SIGNALS_CRIPTO)
-            regime.update("hv_low")
-            applied.append(f"hv_low (HV~{sigma_est*100:.0f}%)")
+        # Use real HV for Bayesian signal — not hardcoded 0.80
+        if hv_real is not None:
+            if hv_real > 0.80:
+                updater.update_from_library("hv_high", SIGNALS_CRIPTO)
+                regime.update("hv_high")
+                applied.append(f"hv_high (HV={hv_real*100:.1f}%)")
+            elif hv_real < 0.40:
+                updater.update_from_library("hv_low", SIGNALS_CRIPTO)
+                regime.update("hv_low")
+                applied.append(f"hv_low (HV={hv_real*100:.1f}%)")
 
         posterior = updater.posterior
         f_full, f_quarter, f_capped = bayesian_kelly(posterior, ganho=0.15, perda=0.08, risk_type="high")
