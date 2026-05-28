@@ -30,7 +30,7 @@ description: >
 1. file_read /root/.zeroclaw/workspace/{ticker}_output.txt
 2. Se SUCESSO:
    - Checar timestamp no arquivo
-   - Se < 4h atrás: USAR dados, NÃO fazer web_fetch
+   - Se < 4h atrás: USAR dados do arquivo — NÃO fazer web_fetch
    - Se 4-24h: usar fundamentalistas, atualizar APENAS preço via web_fetch
    - Se > 24h: pedir ao usuário rodar analyze_ticker.py novamente
 3. Se ARQUIVO NÃO EXISTE:
@@ -38,14 +38,37 @@ description: >
    - OU buscar via web_fetch (fallback)
 ```
 
-## Conteúdo dos arquivos
+## ⚠️ REGRA CRÍTICA — Nunca usar memória episódica para dados quant
 
-`{ticker}_output.txt` contém:
-- Cotação, variação, market cap
+**PROIBIDO** usar valores de HV, IV, Z-Score, max/min, correlação BTC de memória episódica.
+Estes valores mudam a cada dia e uma leitura stale inverte a estratégia (incidente SOL 02/05/2026).
+
+- HV, Z-Score, max_30d, min_30d, corr_btc_60d → sempre do arquivo ou web_fetch fresco
+- Se o arquivo não tiver esses campos (gerado antes de 28/05/2026): ignorar o arquivo e buscar via web_fetch
+
+## Conteúdo dos arquivos (analyze_ticker.py ≥ 28/05/2026)
+
+`{ticker}_output.txt` contém (cripto):
+- Cotação, variação 24h, market cap, USD/BRL
+- **HV 30d real** (calculado via CoinGecko market_chart — σ × √252)
+- **Z-Score 30d, Máx 30d, Mín 30d, Média 30d**
+- **Corr BTC 60d** (Pearson sobre preços diários)
+- **IV ATM OKX** (se disponível para o ativo)
+- Fear & Greed
+- Black-Scholes ATM com σ = HV real (não estimativa)
+- Kelly Bayesiano
+
+`{ticker}_output.txt` contém (B3):
+- Cotação COTAHIST + BRAPI, Selic, USD/BRL
 - P/L, LPA, VPA, DY, Valor Graham
-- Black-Scholes ATM (Call+Put) com Greeks
-- Kelly Criterion
-- Fear & Greed (cripto)
+- Opções reais COTAHIST (IV implícita back-solved)
+- Kelly Bayesiano
+
+`daily_report_*.md` contém:
+- Ranking fundamentalista (NYSE/NASDAQ + ADRs)
+- Top 3 detalhado
+- Oportunidades Value
+- Líderes Quality
 
 `daily_report_*.md` contém:
 - Ranking fundamentalista (NYSE/NASDAQ + ADRs)
